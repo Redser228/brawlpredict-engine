@@ -16,12 +16,24 @@
           fontFamily: {
             sans: ['Inter', 'sans-serif'],
             mono: ['JetBrains Mono', 'monospace'],
+          },
+          colors: {
+            cyber: {
+              bg: '#07080e',
+              card: '#101424',
+              border: '#222844',
+              purple: '#9d4edd',
+              cyan: '#00f5d4',
+              gold: '#ffbe0b',
+              coral: '#ff0055',
+            }
           }
         }
       }
     };
   </script>
   <style>
+    /* Основные стили киберспортивного интерфейса и кастомных элементов управления */
     body {
       background-color: #07080e;
       background-image:
@@ -49,6 +61,46 @@
     .glass-card-b {
       background: linear-gradient(145deg, rgba(26, 16, 40, 0.92), rgba(38, 11, 26, 0.86));
       border: 1px solid rgba(255, 0, 85, 0.25);
+    }
+
+    input[type="range"] {
+      -webkit-appearance: none;
+      appearance: none;
+      height: 6px;
+      border-radius: 999px;
+      background: #1e2540;
+      outline: none;
+      cursor: pointer;
+    }
+
+    input[type="range"].slider-a::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: #00f5d4;
+      box-shadow: 0 0 10px rgba(0, 245, 212, 0.85);
+      cursor: pointer;
+      transition: transform 0.15s ease;
+    }
+    input[type="range"].slider-a::-webkit-slider-thumb:hover {
+      transform: scale(1.2);
+    }
+
+    input[type="range"].slider-b::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: #ff0055;
+      box-shadow: 0 0 10px rgba(255, 0, 85, 0.85);
+      cursor: pointer;
+      transition: transform 0.15s ease;
+    }
+    input[type="range"].slider-b::-webkit-slider-thumb:hover {
+      transform: scale(1.2);
     }
 
     @keyframes pulseGlow {
@@ -79,7 +131,7 @@
 </head>
 <body class="antialiased selection:bg-purple-500 selection:text-white pb-14">
 
-  <!-- ВЕРХНЯЯ ПАНЕЛЬ -->
+  <!-- ВЕРХНЯЯ ПАНЕЛЬ / HEADER С АВТОНОМНЫМ ТАЙМЕРОМ -->
   <header class="sticky top-0 z-40 glass-panel border-b border-white/10">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex flex-wrap items-center justify-between gap-3">
       <div class="flex items-center gap-3">
@@ -113,7 +165,7 @@
               TOKYO 2026 EDITION
             </span>
             <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-mono font-bold bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">
-              READ-ONLY STATS
+              AUTO-SYNC 1H
             </span>
           </div>
           <div class="flex items-center gap-2 text-[11px] sm:text-xs text-slate-400 font-mono">
@@ -144,7 +196,7 @@
 
   <main class="max-w-7xl mx-auto px-4 sm:px-6 pt-6 space-y-6">
 
-    <!-- СВОДКА ИТОГОВ BRAWL STARS WORLD FINALS 2026 -->
+    <!-- СВОДКА ИТОГОВ BRAWL STARS WORLD FINALS 2026 (ТОКИО, 20–22 НОЯБРЯ 2026) И ДИСКЛЕЙМЕР -->
     <section class="glass-panel rounded-2xl p-4 sm:p-5 border border-amber-500/25 space-y-3">
       <div class="flex flex-wrap items-center justify-between gap-2">
         <div class="flex items-center gap-2">
@@ -164,11 +216,11 @@
 
       <div class="bg-amber-500/10 border border-amber-400/25 rounded-xl px-3.5 py-2 text-[11px] text-amber-200/90 flex items-start gap-2">
         <span class="font-bold shrink-0">⚠ Важно:</span>
-        <span>Показатели команд зафиксированы в режиме просмотра и обновляются автоматически. Ни один аналитический алгоритм не гарантирует 100% точность прогнозов в киберспорте: закрытые скримы не публикуются официально, а исход матчей зависит от драфта, ошибок, пинга и текущей формы.</span>
+        <span>Ни один аналитический алгоритм или нейронная модель не гарантирует 100% точность прогнозов в киберспорте. Закрытые скримы не публикуются официально и часто используются командами для тестов драфта и скрытия заготовок, а живые матчи зависят от драфта, ошибок, пинга и текущей формы.</span>
       </div>
     </section>
 
-    <!-- БЛОК 1: КОНТЕКСТ МАТЧА, ФИЛЬТР ПО РЕГИОНАМ И ПОИСК -->
+    <!-- БЛОК 1: КОНТЕКСТ МАТЧА, ФИЛЬТР ПО РЕГИОНАМ И ПОИСК КОМАНД/ИГРОКОВ -->
     <section class="glass-panel rounded-2xl p-4 sm:p-5 space-y-4">
       <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-4 border-b border-white/10">
         <div>
@@ -208,12 +260,39 @@
         </div>
       </div>
 
-      <!-- Фильтр регионов и поиск по команде/игроку -->
+      <!-- Фильтр регионов, поиск по команде/игроку и кнопка добавления своей команды -->
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-3 items-center">
-        <div class="lg:col-span-7 flex flex-wrap gap-1.5" id="regionFilterBar"></div>
-        <div class="lg:col-span-5 relative">
-          <input id="teamSearchInput" type="search" placeholder="Поиск команды или игрока (напр. GeRo, Enraged, Angelboy, Sitetampo)..." class="w-full bg-[#090b14] border border-white/10 rounded-xl pl-3.5 pr-8 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-cyan-400" />
+        <div class="lg:col-span-6 flex flex-wrap gap-1.5" id="regionFilterBar"></div>
+        <div class="lg:col-span-4 relative">
+          <input id="teamSearchInput" type="text" placeholder="Поиск команды или игрока (напр. GeRo, Enraged, Angelboy, Sitetampo)..." class="w-full bg-[#090b14] border border-white/10 rounded-xl pl-3.5 pr-8 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-cyan-400" />
           <button id="btnClearSearch" type="button" title="Сбросить поиск" class="hidden absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white text-xs">✕</button>
+        </div>
+        <div class="lg:col-span-2 flex justify-end">
+          <button id="btnToggleCustomForm" type="button" class="w-full px-3 py-2 rounded-xl bg-purple-600/20 hover:bg-purple-600/35 border border-purple-400/35 text-xs font-bold text-purple-200 transition">
+            + Своя команда
+          </button>
+        </div>
+      </div>
+
+      <!-- Форма создания своей команды -->
+      <div id="customTeamDrawer" class="hidden bg-[#090b14]/95 border border-purple-500/30 rounded-xl p-4 space-y-3">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-extrabold uppercase tracking-wider text-purple-300">Добавить новую команду в базу</span>
+          <button id="btnCloseCustomForm" type="button" class="text-xs text-slate-400 hover:text-white">Закрыть</button>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+          <input id="newTeamName" type="text" placeholder="Название команды" class="bg-[#101424] border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-purple-400" />
+          <input id="newTeamRoster" type="text" placeholder="Состав (Игрок 1, Игрок 2, Игрок 3)" class="bg-[#101424] border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-purple-400" />
+          <select id="newTeamRegion" class="bg-[#101424] border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-purple-400">
+            <option value="EMEA">EMEA</option>
+            <option value="NA">NA</option>
+            <option value="East Asia">East Asia</option>
+            <option value="SA">SA</option>
+            <option value="APAC">APAC</option>
+          </select>
+          <button id="btnSaveCustomTeam" type="button" class="px-4 py-2 rounded-xl bg-gradient-to-r from-cyan-500 to-purple-600 text-white text-xs font-extrabold hover:brightness-110 transition">
+            Сохранить в базу
+          </button>
         </div>
       </div>
 
@@ -227,7 +306,7 @@
       </div>
     </section>
 
-    <!-- БЛОК 2: СРАВНЕНИЕ КОМАНД (ТОЛЬКО ПРОСМОТР ПОКАЗАТЕЛЕЙ) -->
+    <!-- БЛОК 2: СРАВНЕНИЕ КОМАНД (КОМАНДА А vs КОМАНДА Б) -->
     <section class="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
       <!-- КАРТОЧКА КОМАНДЫ А -->
@@ -235,7 +314,7 @@
         <div class="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-cyan-500/20">
           <div class="flex items-center gap-2.5">
             <span class="px-2.5 py-1 rounded-lg bg-cyan-500/20 border border-cyan-400/40 text-cyan-300 font-mono text-xs font-extrabold">TEAM A</span>
-            <span id="nameA" class="text-lg font-black text-white">Natus Vincere</span>
+            <input id="nameA" type="text" value="Natus Vincere" class="bg-transparent border-b border-dashed border-cyan-400/40 focus:border-cyan-400 text-lg font-black text-white focus:outline-none w-44 sm:w-52" />
           </div>
           <select id="presetA" class="bg-[#090e1b] border border-cyan-500/30 rounded-xl px-2.5 py-1.5 text-xs font-semibold text-cyan-200 max-w-full sm:max-w-[240px] focus:outline-none"></select>
         </div>
@@ -251,7 +330,7 @@
           <div id="placementNoteA" class="text-[11px] text-amber-300/90">Чемпионы World Finals 2026 (победа 4:3 над FUT Esports в Токио)</div>
         </div>
 
-        <div id="statsContainerA" class="space-y-3"></div>
+        <div id="slidersContainerA" class="space-y-3"></div>
       </div>
 
       <!-- КАРТОЧКА КОМАНДЫ Б -->
@@ -259,7 +338,7 @@
         <div class="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-rose-500/20">
           <div class="flex items-center gap-2.5">
             <span class="px-2.5 py-1 rounded-lg bg-rose-500/20 border border-rose-400/40 text-rose-300 font-mono text-xs font-extrabold">TEAM B</span>
-            <span id="nameB" class="text-lg font-black text-white">FUT Esports</span>
+            <input id="nameB" type="text" value="FUT Esports" class="bg-transparent border-b border-dashed border-rose-400/40 focus:border-rose-400 text-lg font-black text-white focus:outline-none w-44 sm:w-52" />
           </div>
           <select id="presetB" class="bg-[#150a17] border border-rose-500/30 rounded-xl px-2.5 py-1.5 text-xs font-semibold text-rose-200 max-w-full sm:max-w-[240px] focus:outline-none"></select>
         </div>
@@ -275,7 +354,7 @@
           <div id="placementNoteB" class="text-[11px] text-amber-300/90">2-е место World Finals 2026 (Токио), топ-1 EMEA</div>
         </div>
 
-        <div id="statsContainerB" class="space-y-3"></div>
+        <div id="slidersContainerB" class="space-y-3"></div>
       </div>
 
     </section>
@@ -283,6 +362,7 @@
     <!-- БЛОК 3: ГЛАВНЫЙ ВЕРДИКТ МОДЕЛИ И SVG RADAR CHART -->
     <section id="resultsSection" class="grid grid-cols-1 lg:grid-cols-12 gap-6 transition-all duration-300">
 
+      <!-- Левая колонка: Шкала вероятностей, счет и AI-разбор -->
       <div class="lg:col-span-7 glass-panel rounded-2xl p-5 sm:p-6 flex flex-col justify-between space-y-6">
         <div class="flex flex-wrap items-center justify-between gap-2">
           <div>
@@ -321,6 +401,7 @@
           <div id="scoreDistribution" class="grid grid-cols-3 sm:grid-cols-6 gap-2 pt-2"></div>
         </div>
 
+        <!-- Аналитический разбор факторов -->
         <div class="bg-[#090c16]/95 border border-purple-500/25 rounded-xl p-4 space-y-2.5">
           <div class="flex items-center justify-between gap-2">
             <span class="text-xs font-bold uppercase tracking-wider text-purple-300 flex items-center gap-1.5">
@@ -335,6 +416,7 @@
         </div>
       </div>
 
+      <!-- Правая колонка: SVG Radar Chart -->
       <div class="lg:col-span-5 glass-panel rounded-2xl p-5 sm:p-6 flex flex-col justify-between">
         <div>
           <h3 class="text-base font-extrabold text-white">Профиль силы по 6 осям (Radar Chart)</h3>
@@ -364,7 +446,7 @@
 
     </section>
 
-    <!-- БЛОК 4: СИМУЛЯЦИЯ ПО КАРТАМ -->
+    <!-- БЛОК 4: СИМУЛЯЦИЯ ПО КАРТАМ (MAP-BY-MAP) И МЕТА-ПИКИ/БАНЫ -->
     <section class="glass-panel rounded-2xl p-5 sm:p-6 space-y-4">
       <div class="flex flex-wrap items-center justify-between gap-3">
         <div>
@@ -383,7 +465,7 @@
       <div id="mapsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3.5"></div>
     </section>
 
-    <!-- БЛОК 5: ЖУРНАЛ ИЗМЕНЕНИЙ И ИСТОРИЯ -->
+    <!-- БЛОК 5: ЖУРНАЛ ИЗМЕНЕНИЙ (CHANGE LOG) И ИСТОРИЯ ПРОГНОЗОВ -->
     <section class="grid grid-cols-1 lg:grid-cols-12 gap-6">
       <div class="lg:col-span-6 glass-panel rounded-2xl p-5 space-y-3">
         <div class="flex items-center justify-between">
@@ -409,7 +491,7 @@
 
   </main>
 
-  <!-- TOAST -->
+  <!-- TOAST-УВЕДОМЛЕНИЕ -->
   <div id="toastBox" class="fixed bottom-5 right-5 z-50 pointer-events-none opacity-0 translate-y-3 transition-all duration-300">
     <div class="glass-panel border border-cyan-400/40 px-4 py-3 rounded-xl shadow-2xl flex items-center gap-2.5 text-xs font-semibold text-white">
       <span class="w-2 h-2 rounded-full bg-cyan-400"></span>
@@ -418,9 +500,17 @@
   </div>
 
   <script>
-    const STORAGE_KEY = 'brawlpredict_v6_readonly_2026_v2';
-    const SYNC_INTERVAL_MS = 60 * 60 * 1000;
+    /**
+     * ============================================================================
+     * BRAWLPREDICT ENGINE v6.0 (POST-WORLDS 2026 EDITION)
+     * Автономный клиентский движок прогнозирования киберспорта Brawl Stars
+     * ============================================================================
+     */
 
+    const STORAGE_KEY = 'brawlpredict_v6_worlds2026_state_v1';
+    const SYNC_INTERVAL_MS = 60 * 60 * 1000; // 1 час (3600 секунд)
+
+    // Актуальная база команд сезона 2026 после Brawl Stars World Finals 2026 (Токио, 20–22 ноября 2026)
     const INITIAL_TEAMS_2026 = {
       navi_2026: {
         name: "Natus Vincere",
@@ -436,7 +526,7 @@
         region: "EMEA",
         style: "Worlds Runner-Up • Top EMEA",
         note: "2-е место World Finals 2026 (Токио), лидер регулярного сезона EMEA",
-        stats: { scrims: 85, official: 86, synergy: 92, draft: 93, form: 89, bootcamp: 89, h2h: 44 }
+        stats: { scrims: 85, official: 86, synergy: 92, draft: 93, form: 89, bootcamp: 89, h2h: 52 }
       },
       elektros_2026: {
         name: "Team Elektros",
@@ -553,15 +643,16 @@
     };
 
     const METRIC_CONFIG = [
-      { key: 'scrims',   label: 'Винрейт в закрытых скримах', unit: '%', maxVal: 100 },
-      { key: 'official', label: 'Официальная форма / 30д', unit: '%', maxVal: 100 },
-      { key: 'synergy',  label: 'Синергия и LAN-опыт', unit: '/100', maxVal: 100 },
-      { key: 'draft',    label: 'Глубина драфта', unit: '/100', maxVal: 100 },
-      { key: 'form',     label: 'Текущий винстрик / импульс', unit: '/100', maxVal: 100 },
-      { key: 'bootcamp', label: 'Пинг / Буткемп-условия', unit: '/100', maxVal: 100 },
-      { key: 'h2h',      label: 'Личные встречи (H2H)', unit: '%', maxVal: 100 }
+      { key: 'scrims',   label: 'Винрейт в закрытых скримах', unit: '%', min: 15, max: 98 },
+      { key: 'official', label: 'Официальная форма / 30д', unit: '%', min: 15, max: 98 },
+      { key: 'synergy',  label: 'Синергия и LAN-опыт', unit: '/100', min: 20, max: 100 },
+      { key: 'draft',    label: 'Глубина драфта', unit: '/100', min: 20, max: 100 },
+      { key: 'form',     label: 'Текущий винстрик / импульс', unit: '/100', min: 10, max: 100 },
+      { key: 'bootcamp', label: 'Пинг / Буткемп-условия', unit: '/100', min: 20, max: 100 },
+      { key: 'h2h',      label: 'Личные встречи (H2H)', unit: '%', min: 0, max: 100 }
     ];
 
+    // Резервный пул режимов, карт и меты (используется при офлайне/CORS или дополняется Brawlify API)
     const FALLBACK_MODES = [
       { id: 'gem_grab', name: 'Gem Grab', color: 'text-purple-400', badgeBg: 'bg-purple-500/15 border-purple-500/30', maps: ['Hard Rock Mine', 'Double Swoosh', 'Last Stop', 'Undermine'], metaPicks: ['Gene', 'Sandy', 'Kenji', 'Moe', 'Byron', 'Buster'], metaBans: ['Kenji', 'Moe', 'Gene'], preferredFactor: 'synergy' },
       { id: 'brawl_ball', name: 'Brawl Ball', color: 'text-cyan-400', badgeBg: 'bg-cyan-500/15 border-cyan-500/30', maps: ['Center Stage', 'Pinball Dreams', 'Penalty Kick', 'Triple Dribble'], metaPicks: ['Frank', 'Melodie', 'Max', 'Gale', 'Surge', 'Darryl'], metaBans: ['Frank', 'Melodie', 'Gale'], preferredFactor: 'form' },
@@ -588,19 +679,12 @@
       modesDb: JSON.parse(JSON.stringify(FALLBACK_MODES)),
       teamAKey: 'navi_2026',
       teamBKey: 'fut_2026',
+      teamA: JSON.parse(JSON.stringify(INITIAL_TEAMS_2026.navi_2026)),
+      teamB: JSON.parse(JSON.stringify(INITIAL_TEAMS_2026.fut_2026)),
+      locks: { A: {}, B: {} },
       changeLog: [],
       history: []
     };
-
-    function getActiveTeam(side) {
-      const key = side === 'A' ? state.teamAKey : state.teamBKey;
-      if (!state.teamsDb[key]) {
-        const fallbackKey = side === 'A' ? 'navi_2026' : 'fut_2026';
-        if (side === 'A') state.teamAKey = fallbackKey;
-        else state.teamBKey = fallbackKey;
-      }
-      return state.teamsDb[side === 'A' ? state.teamAKey : state.teamBKey];
-    }
 
     function saveStateToStorage() {
       try {
@@ -614,6 +698,9 @@
           teamsDb: state.teamsDb,
           teamAKey: state.teamAKey,
           teamBKey: state.teamBKey,
+          teamA: state.teamA,
+          teamB: state.teamB,
+          locks: state.locks,
           changeLog: state.changeLog.slice(0, 25),
           history: state.history.slice(0, 15)
         }));
@@ -627,9 +714,7 @@
         const raw = localStorage.getItem(STORAGE_KEY);
         if (!raw) return;
         const parsed = JSON.parse(raw);
-        if (parsed.teamsDb && typeof parsed.teamsDb === 'object') {
-          state.teamsDb = parsed.teamsDb;
-        }
+        if (parsed.teamsDb) state.teamsDb = parsed.teamsDb;
         if (parsed.format) state.format = parsed.format;
         if (parsed.stage) state.stage = parsed.stage;
         if (parsed.env) state.env = parsed.env;
@@ -638,6 +723,9 @@
         if (parsed.lastSyncAt) state.lastSyncAt = parsed.lastSyncAt;
         if (parsed.teamAKey && state.teamsDb[parsed.teamAKey]) state.teamAKey = parsed.teamAKey;
         if (parsed.teamBKey && state.teamsDb[parsed.teamBKey]) state.teamBKey = parsed.teamBKey;
+        if (parsed.teamA) state.teamA = parsed.teamA;
+        if (parsed.teamB) state.teamB = parsed.teamB;
+        if (parsed.locks) state.locks = parsed.locks;
         if (Array.isArray(parsed.changeLog)) state.changeLog = parsed.changeLog;
         if (Array.isArray(parsed.history)) state.history = parsed.history;
       } catch (err) {
@@ -728,37 +816,94 @@
       });
     }
 
-    function renderTeamStats(side) {
-      const container = document.getElementById(`statsContainer${side}`);
-      const teamData = getActiveTeam(side);
-      const barGradient = side === 'A'
-        ? 'bg-gradient-to-r from-cyan-500 to-teal-300'
-        : 'bg-gradient-to-r from-rose-600 to-pink-400';
+    function renderTeamSliders(side) {
+      const container = document.getElementById(`slidersContainer${side}`);
+      const teamData = side === 'A' ? state.teamA : state.teamB;
+      const sliderClass = side === 'A' ? 'slider-a' : 'slider-b';
       const valColor = side === 'A' ? 'text-cyan-300' : 'text-rose-300';
 
-      document.getElementById(`name${side}`).textContent = teamData.name;
+      document.getElementById(`name${side}`).value = teamData.name;
       document.getElementById(`roster${side}`).textContent = teamData.roster;
       document.getElementById(`regionTag${side}`).textContent = teamData.region;
       document.getElementById(`styleBadge${side}`).textContent = teamData.style;
       document.getElementById(`placementNote${side}`).textContent = teamData.note || '';
 
-      container.innerHTML = METRIC_CONFIG.map(metric => {
-        const val = Number(teamData.stats[metric.key] ?? 0);
-        const pct = Math.max(4, Math.min(100, (val / metric.maxVal) * 100));
-        return `
-          <div class="space-y-1">
-            <div class="flex items-center justify-between gap-2 text-xs">
-              <span class="text-slate-300 font-medium truncate">${metric.label}</span>
-              <span class="font-mono font-bold ${valColor} shrink-0">${val}${metric.unit}</span>
-            </div>
-            <div class="h-2 w-full bg-[#090d19] rounded-full overflow-hidden border border-white/5">
-              <div class="h-full rounded-full ${barGradient} transition-all duration-300" style="width: ${pct}%"></div>
+      container.innerHTML = '';
+
+      METRIC_CONFIG.forEach(metric => {
+        const val = teamData.stats[metric.key];
+        const isLocked = Boolean(state.locks[side]?.[metric.key]);
+
+        const row = document.createElement('div');
+        row.className = 'space-y-1';
+        row.innerHTML = `
+          <div class="flex items-center justify-between gap-2 text-xs">
+            <span class="text-slate-300 font-medium truncate">${metric.label}</span>
+            <div class="flex items-center gap-2 shrink-0">
+              <span id="val_${side}_${metric.key}" class="font-mono font-bold ${valColor}">${val}${metric.unit}</span>
+              <button type="button" data-lock-side="${side}" data-lock-key="${metric.key}" title="${isLocked ? 'Закреплено (автообновление не перезапишет)' : 'Зафиксировать значение от автообновления'}" class="lock-btn px-1.5 py-0.5 rounded border text-[11px] font-mono transition ${
+                isLocked
+                  ? 'bg-amber-500/20 border-amber-400/50 text-amber-300'
+                  : 'bg-white/5 border-white/10 text-slate-500 hover:text-slate-300'
+              }">${isLocked ? '🔒' : '🔓'}</button>
             </div>
           </div>
+          <input
+            type="range"
+            min="${metric.min}"
+            max="${metric.max}"
+            value="${val}"
+            data-side="${side}"
+            data-key="${metric.key}"
+            class="w-full ${sliderClass}"
+          />
         `;
-      }).join('');
+
+        const lockBtn = row.querySelector('.lock-btn');
+        lockBtn.addEventListener('click', () => {
+          const nextLock = !Boolean(state.locks[side][metric.key]);
+          state.locks[side][metric.key] = nextLock;
+          renderTeamSliders(side);
+          saveStateToStorage();
+          showToast(nextLock ? `Зафиксировано: ${metric.label}` : `Снята фиксация: ${metric.label}`);
+        });
+
+        const input = row.querySelector('input');
+        input.addEventListener('input', (e) => {
+          const newVal = Number(e.target.value);
+          teamData.stats[metric.key] = newVal;
+          state.locks[side][metric.key] = true;
+          document.getElementById(`val_${side}_${metric.key}`).textContent = `${newVal}${metric.unit}`;
+
+          const btn = row.querySelector('.lock-btn');
+          btn.textContent = '🔒';
+          btn.className = 'lock-btn px-1.5 py-0.5 rounded border text-[11px] font-mono transition bg-amber-500/20 border-amber-400/50 text-amber-300';
+
+          if (metric.key === 'h2h') {
+            const otherSide = side === 'A' ? 'B' : 'A';
+            const otherTeam = otherSide === 'A' ? state.teamA : state.teamB;
+            const mirrorVal = 100 - newVal;
+            otherTeam.stats.h2h = mirrorVal;
+            state.locks[otherSide].h2h = true;
+            const otherInput = document.querySelector(`input[data-side="${otherSide}"][data-key="h2h"]`);
+            if (otherInput) otherInput.value = mirrorVal;
+            const otherLabel = document.getElementById(`val_${otherSide}_h2h`);
+            if (otherLabel) otherLabel.textContent = `${mirrorVal}%`;
+          }
+
+          saveStateToStorage();
+          runPredictionEngine(false);
+        });
+
+        container.appendChild(row);
+      });
     }
 
+    /**
+     * ============================================================================
+     * СИНХРОНИЗАЦИЯ С BRAWLIFY API И АВТОНОМНЫЙ ПОЧАСОВОЙ ЦИКЛ
+     * ============================================================================
+     */
     async function fetchBrawlifyMeta() {
       try {
         const controller = new AbortController();
@@ -807,13 +952,26 @@
       icon.classList.add('animate-spin');
 
       const liveOk = await fetchBrawlifyMeta();
+
+      let unlockedUpdatesCount = 0;
       const delta = () => Math.round((Math.random() - 0.48) * 3); // [-1..+1]
 
-      let updatedCount = 0;
-      Object.values(state.teamsDb).forEach(t => {
-        t.stats.official = Math.max(30, Math.min(96, t.stats.official + delta()));
+      const applyTeamSync = (teamObj, side) => {
+        ['official', 'form'].forEach(k => {
+          if (!state.locks[side]?.[k]) {
+            teamObj.stats[k] = Math.max(25, Math.min(96, teamObj.stats[k] + delta()));
+            unlockedUpdatesCount++;
+          }
+        });
+      };
+
+      applyTeamSync(state.teamA, 'A');
+      applyTeamSync(state.teamB, 'B');
+
+      Object.entries(state.teamsDb).forEach(([key, t]) => {
         t.stats.form = Math.max(30, Math.min(96, t.stats.form + delta()));
-        updatedCount += 2;
+        if (key === state.teamAKey) t.stats.form = state.teamA.stats.form;
+        if (key === state.teamBKey) t.stats.form = state.teamB.stats.form;
       });
 
       state.lastSyncAt = Date.now();
@@ -822,12 +980,12 @@
       document.getElementById('lastSyncLabel').textContent = new Date(state.lastSyncAt).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
 
       pushChangeLog(
-        `${reason}: ${liveOk ? 'обновлены карты и бравлеры Brawlify API' : 'проверен локальный мета-пул 2026'}, обновлено метрик формы/официалок: ${updatedCount}.`
+        `${reason}: ${liveOk ? 'обновлены карты и бравлеры Brawlify API' : 'проверен локальный мета-пул 2026'}, обновлено незакрепленных показателей: ${unlockedUpdatesCount}.`
       );
 
       renderModesPool();
-      renderTeamStats('A');
-      renderTeamStats('B');
+      renderTeamSliders('A');
+      renderTeamSliders('B');
       saveStateToStorage();
       runPredictionEngine(false);
 
@@ -860,9 +1018,16 @@
       }, 1000);
     }
 
+    /**
+     * ============================================================================
+     * МАТЕМАТИЧЕСКАЯ МОДЕЛЬ: ЛОГИСТИКА + МОНТЕ-КАРЛО (10,000 СИМУЛЯЦИЙ)
+     * ============================================================================
+     */
     function evaluateTeamRating(team, opponent, context) {
       const s = team.stats;
+      const opp = opponent.stats;
 
+      // Поправка на закрытые скримы: если скримы > официалок более чем на 12 п.п.
       const scrimGap = s.scrims - s.official;
       let effectiveScrims = s.scrims;
       let scrimTrapFlag = false;
@@ -871,6 +1036,7 @@
         scrimTrapFlag = true;
       }
 
+      // Пинг-коррекция при межрегиональном онлайне
       let effectiveBootcamp = s.bootcamp;
       let crossRegionPenalty = false;
       if (context.env === 'online' && team.region !== opponent.region) {
@@ -974,11 +1140,8 @@
     }
 
     function runPredictionEngine(withMonteCarloBoost) {
-      const teamA = getActiveTeam('A');
-      const teamB = getActiveTeam('B');
-
-      const evalA = evaluateTeamRating(teamA, teamB, state);
-      const evalB = evaluateTeamRating(teamB, teamA, state);
+      const evalA = evaluateTeamRating(state.teamA, state.teamB, state);
+      const evalB = evaluateTeamRating(state.teamB, state.teamA, state);
 
       const diff = evalA.rating - evalB.rating;
       const pMapA = 1 / (1 + Math.exp(-0.088 * diff));
@@ -995,8 +1158,8 @@
       const penalties = (evalA.scrimTrapFlag ? 6 : 0) + (evalB.scrimTrapFlag ? 6 : 0) + ((evalA.crossRegionPenalty || evalB.crossRegionPenalty) ? 4 : 0);
       const confidence = Math.min(96.5, Math.max(54.0, 56 + spread * 0.78 - penalties * 0.35));
 
-      document.getElementById('verdictTeamA').textContent = teamA.name;
-      document.getElementById('verdictTeamB').textContent = teamB.name;
+      document.getElementById('verdictTeamA').textContent = state.teamA.name;
+      document.getElementById('verdictTeamB').textContent = state.teamB.name;
       document.getElementById('probTextA').textContent = `${finalProbA.toFixed(1)}%`;
       document.getElementById('probTextB').textContent = `${finalProbB.toFixed(1)}%`;
       document.getElementById('probBarA').style.width = `${finalProbA.toFixed(1)}%`;
@@ -1018,16 +1181,16 @@
 
       const scrimBox = document.getElementById('scrimWarningBox');
       if (evalA.crossRegionPenalty || evalB.crossRegionPenalty) {
-        scrimBox.innerHTML = `<span class="text-amber-400 font-semibold">🌐 Межрегиональный онлайн-матч:</span> применена поправка на пинг между ${teamA.region} и ${teamB.region}.`;
+        scrimBox.innerHTML = `<span class="text-amber-400 font-semibold">🌐 Межрегиональный онлайн-матч:</span> применена поправка на пинг между ${state.teamA.region} и ${state.teamB.region}.`;
       } else if (evalA.scrimTrapFlag || evalB.scrimTrapFlag) {
         scrimBox.innerHTML = `<span class="text-amber-400 font-semibold">⚠ Коррекция скримов:</span> обнаружен разрыв между скримами и официальными матчами.`;
       } else {
         scrimBox.innerHTML = `<span class="text-emerald-400 font-semibold">✓ Статистика сбалансирована:</span> скримы и официальные показатели согласованы.`;
       }
 
-      renderRadarChart(teamA, teamB);
-      renderAnalyticalReport(teamA, teamB, finalProbA, finalProbB, analytic.topScore, evalA, evalB);
-      renderMapByMap(teamA, teamB, pMapA);
+      renderRadarChart();
+      renderAnalyticalReport(finalProbA, finalProbB, analytic.topScore, evalA, evalB);
+      renderMapByMap(pMapA);
 
       if (withMonteCarloBoost) {
         const sec = document.getElementById('resultsSection');
@@ -1036,10 +1199,10 @@
       }
     }
 
-    function renderRadarChart(teamA, teamB) {
+    function renderRadarChart() {
       const svg = document.getElementById('radarSvg');
-      document.getElementById('legendNameA').textContent = teamA.name;
-      document.getElementById('legendNameB').textContent = teamB.name;
+      document.getElementById('legendNameA').textContent = state.teamA.name;
+      document.getElementById('legendNameB').textContent = state.teamB.name;
 
       const cx = 170, cy = 145, maxR = 98;
       const axes = [
@@ -1073,15 +1236,15 @@
         return `${(cx + Math.cos(ang) * maxR * v).toFixed(1)},${(cy + Math.sin(ang) * maxR * v).toFixed(1)}`;
       }).join(' ');
 
-      html += `<polygon points="${poly(teamA)}" fill="rgba(0, 245, 212, 0.22)" stroke="#00f5d4" stroke-width="2.2" />`;
-      html += `<polygon points="${poly(teamB)}" fill="rgba(255, 0, 85, 0.22)" stroke="#ff0055" stroke-width="2.2" />`;
+      html += `<polygon points="${poly(state.teamA)}" fill="rgba(0, 245, 212, 0.22)" stroke="#00f5d4" stroke-width="2.2" />`;
+      html += `<polygon points="${poly(state.teamB)}" fill="rgba(255, 0, 85, 0.22)" stroke="#ff0055" stroke-width="2.2" />`;
       svg.innerHTML = html;
     }
 
-    function renderAnalyticalReport(teamA, teamB, probA, probB, topScore, evalA, evalB) {
+    function renderAnalyticalReport(probA, probB, topScore, evalA, evalB) {
       const aFav = probA >= probB;
-      const fav = aFav ? teamA : teamB;
-      const dog = aFav ? teamB : teamA;
+      const fav = aFav ? state.teamA : state.teamB;
+      const dog = aFav ? state.teamB : state.teamA;
       const favProb = aFav ? probA : probB;
 
       const factors = [
@@ -1103,7 +1266,7 @@
       `;
     }
 
-    function renderMapByMap(teamA, teamB, basePMapA) {
+    function renderMapByMap(basePMapA) {
       const grid = document.getElementById('mapsGrid');
       const modes = state.modesDb.filter(m => state.activeModes.includes(m.id));
       const cards = [];
@@ -1112,7 +1275,7 @@
         const mode = modes[(i + state.mapSeed) % modes.length];
         const mapName = mode.maps[(i * 2 + state.mapSeed) % mode.maps.length];
         const fKey = mode.preferredFactor;
-        const shift = (teamA.stats[fKey] - teamB.stats[fKey]) * 0.0026 + (i % 2 === 0 ? 0.015 : -0.015);
+        const shift = (state.teamA.stats[fKey] - state.teamB.stats[fKey]) * 0.0026 + (i % 2 === 0 ? 0.015 : -0.015);
         const pctA = Math.round(Math.min(92, Math.max(8, (basePMapA + shift) * 100)));
         const pctB = 100 - pctA;
 
@@ -1170,16 +1333,14 @@
     }
 
     function savePredictionToHistory() {
-      const teamA = getActiveTeam('A');
-      const teamB = getActiveTeam('B');
       const probA = document.getElementById('probTextA').textContent;
       const probB = document.getElementById('probTextB').textContent;
       const score = document.getElementById('predictedScore').textContent;
       const time = new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
 
       state.history.unshift({
-        teamA: teamA.name,
-        teamB: teamB.name,
+        teamA: state.teamA.name,
+        teamB: state.teamB.name,
         probA,
         probB,
         score,
@@ -1257,11 +1418,48 @@
         populateTeamSelects();
       });
 
+      const drawer = document.getElementById('customTeamDrawer');
+      document.getElementById('btnToggleCustomForm').addEventListener('click', () => drawer.classList.toggle('hidden'));
+      document.getElementById('btnCloseCustomForm').addEventListener('click', () => drawer.classList.add('hidden'));
+
+      document.getElementById('btnSaveCustomTeam').addEventListener('click', () => {
+        const name = document.getElementById('newTeamName').value.trim();
+        const roster = document.getElementById('newTeamRoster').value.trim() || 'Player 1, Player 2, Player 3';
+        const region = document.getElementById('newTeamRegion').value;
+        if (!name) {
+          showToast('Введите название команды');
+          return;
+        }
+        const key = 'custom_' + Date.now();
+        state.teamsDb[key] = {
+          name,
+          roster,
+          region,
+          style: 'Custom Roster',
+          note: 'Пользовательский состав, добавленный вручную',
+          stats: { scrims: 74, official: 72, synergy: 78, draft: 76, form: 74, bootcamp: 76, h2h: 50 }
+        };
+        state.teamAKey = key;
+        state.teamA = JSON.parse(JSON.stringify(state.teamsDb[key]));
+        document.getElementById('newTeamName').value = '';
+        document.getElementById('newTeamRoster').value = '';
+        drawer.classList.add('hidden');
+        populateTeamSelects();
+        renderTeamSliders('A');
+        saveStateToStorage();
+        runPredictionEngine(false);
+        pushChangeLog(`Добавлена команда «${name}» (${region}).`);
+        showToast(`Команда «${name}» сохранена`);
+      });
+
       document.getElementById('presetA').addEventListener('change', (e) => {
         const key = e.target.value;
         if (!state.teamsDb[key]) return;
         state.teamAKey = key;
-        renderTeamStats('A');
+        state.teamA = JSON.parse(JSON.stringify(state.teamsDb[key]));
+        state.teamB.stats.h2h = 100 - state.teamA.stats.h2h;
+        renderTeamSliders('A');
+        renderTeamSliders('B');
         saveStateToStorage();
         runPredictionEngine(false);
       });
@@ -1270,16 +1468,32 @@
         const key = e.target.value;
         if (!state.teamsDb[key]) return;
         state.teamBKey = key;
-        renderTeamStats('B');
+        state.teamB = JSON.parse(JSON.stringify(state.teamsDb[key]));
+        state.teamA.stats.h2h = 100 - state.teamB.stats.h2h;
+        renderTeamSliders('A');
+        renderTeamSliders('B');
+        saveStateToStorage();
+        runPredictionEngine(false);
+      });
+
+      document.getElementById('nameA').addEventListener('input', (e) => {
+        state.teamA.name = e.target.value || 'Team A';
+        saveStateToStorage();
+        runPredictionEngine(false);
+      });
+      document.getElementById('nameB').addEventListener('input', (e) => {
+        state.teamB.name = e.target.value || 'Team B';
         saveStateToStorage();
         runPredictionEngine(false);
       });
 
       document.getElementById('btnSwapTeams').addEventListener('click', () => {
         [state.teamAKey, state.teamBKey] = [state.teamBKey, state.teamAKey];
+        [state.teamA, state.teamB] = [state.teamB, state.teamA];
+        [state.locks.A, state.locks.B] = [state.locks.B, state.locks.A];
         populateTeamSelects();
-        renderTeamStats('A');
-        renderTeamStats('B');
+        renderTeamSliders('A');
+        renderTeamSliders('B');
         saveStateToStorage();
         runPredictionEngine(false);
         showToast('Команды поменялись сторонами');
@@ -1339,8 +1553,8 @@
       renderRegionFilters();
       populateTeamSelects();
       renderModesPool();
-      renderTeamStats('A');
-      renderTeamStats('B');
+      renderTeamSliders('A');
+      renderTeamSliders('B');
       renderChangeLog();
       renderHistory();
       bindEvents();
