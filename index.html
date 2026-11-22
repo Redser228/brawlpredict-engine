@@ -1592,6 +1592,36 @@
       }
     });
   });
+  (function lockAllStats() {
+    function applyLock() {
+      document.querySelectorAll('input[type="range"], input[type="number"], textarea').forEach((el) => {
+        el.disabled = true;
+        el.readOnly = true;
+        el.style.pointerEvents = 'none';
+        el.style.opacity = '0.65';
+      });
+
+      document.querySelectorAll('button').forEach((btn) => {
+        const label = (btn.textContent || '').toLowerCase();
+        if (
+          label.includes('сохранить') ||
+          label.includes('добавить') ||
+          label.includes('сброс') ||
+          label.includes('изменить') ||
+          label.includes('редактировать')
+        ) {
+          btn.remove();
+        }
+      });
+    }
+
+    document.addEventListener('DOMContentLoaded', applyLock);
+    window.addEventListener('load', applyLock);
+
+    // Если интерфейс перерисовывается динамически, блокируем повторно
+    const observer = new MutationObserver(() => applyLock());
+    observer.observe(document.documentElement, { childList: true, subtree: true });
+  })();
 </script>
 </body>
 </html>
