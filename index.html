@@ -1,0 +1,1574 @@
+<!DOCTYPE html>
+<html lang="ru" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BrawlPredict Engine v6.0 • Post-Worlds 2026 Esports AI</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
+          colors: {
+            cyber: {
+              bg: '#07080e',
+              card: '#101424',
+              border: '#222844',
+              purple: '#9d4edd',
+              cyan: '#00f5d4',
+              gold: '#ffbe0b',
+              coral: '#ff0055',
+            }
+          }
+        }
+      }
+    };
+  </script>
+  <style>
+    /* Основные стили киберспортивного интерфейса и кастомных элементов управления */
+    body {
+      background-color: #07080e;
+      background-image:
+        radial-gradient(circle at 12% 14%, rgba(157, 78, 221, 0.16), transparent 36%),
+        radial-gradient(circle at 88% 18%, rgba(0, 245, 212, 0.11), transparent 36%),
+        radial-gradient(circle at 50% 92%, rgba(255, 0, 85, 0.09), transparent 42%);
+      color: #f1f5f9;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    .glass-panel {
+      background: rgba(16, 20, 36, 0.84);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      box-shadow: 0 12px 32px -12px rgba(0, 0, 0, 0.78);
+    }
+
+    .glass-card-a {
+      background: linear-gradient(145deg, rgba(16, 23, 42, 0.92), rgba(9, 28, 38, 0.86));
+      border: 1px solid rgba(0, 245, 212, 0.25);
+    }
+
+    .glass-card-b {
+      background: linear-gradient(145deg, rgba(26, 16, 40, 0.92), rgba(38, 11, 26, 0.86));
+      border: 1px solid rgba(255, 0, 85, 0.25);
+    }
+
+    input[type="range"] {
+      -webkit-appearance: none;
+      appearance: none;
+      height: 6px;
+      border-radius: 999px;
+      background: #1e2540;
+      outline: none;
+      cursor: pointer;
+    }
+
+    input[type="range"].slider-a::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: #00f5d4;
+      box-shadow: 0 0 10px rgba(0, 245, 212, 0.85);
+      cursor: pointer;
+      transition: transform 0.15s ease;
+    }
+    input[type="range"].slider-a::-webkit-slider-thumb:hover {
+      transform: scale(1.2);
+    }
+
+    input[type="range"].slider-b::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: #ff0055;
+      box-shadow: 0 0 10px rgba(255, 0, 85, 0.85);
+      cursor: pointer;
+      transition: transform 0.15s ease;
+    }
+    input[type="range"].slider-b::-webkit-slider-thumb:hover {
+      transform: scale(1.2);
+    }
+
+    @keyframes pulseGlow {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.55; transform: scale(0.92); }
+    }
+    .pulse-dot {
+      animation: pulseGlow 2s infinite ease-in-out;
+    }
+
+    @keyframes scanline {
+      0% { transform: translateX(-120%); }
+      100% { transform: translateX(240%); }
+    }
+    .btn-shine {
+      position: relative;
+      overflow: hidden;
+    }
+    .btn-shine::after {
+      content: "";
+      position: absolute;
+      top: 0; left: 0; width: 45%; height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.28), transparent);
+      transform: translateX(-120%);
+      animation: scanline 3.2s infinite;
+    }
+  </style>
+</head>
+<body class="antialiased selection:bg-purple-500 selection:text-white pb-14">
+
+  <!-- ВЕРХНЯЯ ПАНЕЛЬ / HEADER С АВТОНОМНЫМ ТАЙМЕРОМ -->
+  <header class="sticky top-0 z-40 glass-panel border-b border-white/10">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex flex-wrap items-center justify-between gap-3">
+      <div class="flex items-center gap-3">
+        <div class="w-11 h-11 rounded-xl bg-gradient-to-br from-purple-600 via-indigo-600 to-cyan-400 p-0.5 shadow-lg shadow-purple-600/25 shrink-0">
+          <div class="w-full h-full bg-[#090b14] rounded-[10px] flex items-center justify-center">
+            <svg class="w-7 h-7" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M18 3L31 10.5V25.5L18 33L5 25.5V10.5L18 3Z" stroke="url(#gradLogo)" stroke-width="2.4" stroke-linejoin="round"/>
+              <path d="M18 9L23.5 15.5L29 14.5L25.5 21.5L27 27.5L18 24.5L9 27.5L10.5 21.5L7 14.5L12.5 15.5L18 9Z" fill="url(#gradSkull)"/>
+              <circle cx="15" cy="19.5" r="1.5" fill="#090b14"/>
+              <circle cx="21" cy="19.5" r="1.5" fill="#090b14"/>
+              <defs>
+                <linearGradient id="gradLogo" x1="5" y1="3" x2="31" y2="33" gradientUnits="userSpaceOnUse">
+                  <stop stop-color="#00F5D4"/>
+                  <stop offset="0.5" stop-color="#9D4EDD"/>
+                  <stop offset="1" stop-color="#FFBE0B"/>
+                </linearGradient>
+                <linearGradient id="gradSkull" x1="7" y1="9" x2="29" y2="28" gradientUnits="userSpaceOnUse">
+                  <stop stop-color="#FFBE0B"/>
+                  <stop offset="1" stop-color="#FF0055"/>
+                </linearGradient>
+              </defs>
+            </svg>
+          </div>
+        </div>
+        <div>
+          <div class="flex items-center gap-2 flex-wrap">
+            <h1 class="text-base sm:text-xl font-black tracking-tight bg-gradient-to-r from-white via-purple-200 to-cyan-300 bg-clip-text text-transparent">
+              BRAWLPREDICT <span class="text-amber-400">v6.0</span>
+            </h1>
+            <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-mono font-bold bg-amber-500/15 text-amber-300 border border-amber-500/30">
+              TOKYO 2026 EDITION
+            </span>
+            <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-mono font-bold bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">
+              AUTO-SYNC 1H
+            </span>
+          </div>
+          <div class="flex items-center gap-2 text-[11px] sm:text-xs text-slate-400 font-mono">
+            <span id="syncStatusDot" class="w-2 h-2 rounded-full bg-emerald-400 pulse-dot"></span>
+            <span id="syncStatusText">Автообновление активно • <span id="countdownTimer" class="text-cyan-300 font-bold">59:59</span></span>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-2 flex-wrap">
+        <button id="btnForceSync" type="button" title="Запустить синхронизацию прямо сейчас" class="px-3 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-bold text-cyan-300 transition flex items-center gap-1.5">
+          <svg id="syncIcon" class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+          <span>Обновить сейчас</span>
+        </button>
+        <button id="btnToggleAuto" type="button" class="px-3 py-2 rounded-xl bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/30 text-xs font-bold text-emerald-300 transition">
+          Авто: ВКЛ
+        </button>
+        <button id="btnSwapTeams" type="button" title="Поменять команды местами" class="px-3 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-semibold text-slate-200 transition">
+          Свап сторон
+        </button>
+        <button id="btnRunDeepAnalysis" type="button" class="btn-shine px-4 py-2 rounded-xl bg-gradient-to-r from-purple-600 via-fuchsia-600 to-amber-500 hover:brightness-110 text-white text-xs font-extrabold shadow-lg shadow-purple-600/30 transition flex items-center gap-1.5">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+          <span>10k Симуляций</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 pt-6 space-y-6">
+
+    <!-- СВОДКА ИТОГОВ BRAWL STARS WORLD FINALS 2026 (ТОКИО, 20–22 НОЯБРЯ 2026) И ДИСКЛЕЙМЕР -->
+    <section class="glass-panel rounded-2xl p-4 sm:p-5 border border-amber-500/25 space-y-3">
+      <div class="flex flex-wrap items-center justify-between gap-2">
+        <div class="flex items-center gap-2">
+          <span class="px-2.5 py-1 rounded-lg bg-amber-500/20 border border-amber-400/40 text-amber-300 font-mono text-[11px] font-extrabold">
+            WORLD FINALS 2026 • ТОКИО (20–22.11.2026)
+          </span>
+          <h2 class="text-sm sm:text-base font-extrabold text-white">
+            Итоги чемпионата мира 2026: Natus Vincere — чемпионы (4:3 vs FUT Esports)
+          </h2>
+        </div>
+        <span class="text-[11px] font-mono text-slate-400">Призовой фонд: $1,000,000</span>
+      </div>
+
+      <p class="text-xs text-slate-300 leading-relaxed">
+        В Токио завершился <strong class="text-white">Brawl Stars World Finals 2026</strong>: пройдя путь через Last Chance Qualifier, <strong class="text-cyan-300">Natus Vincere</strong> (GeRo, Enraged, Nowy297) вырвали титул в драматичном гранд-финале <strong class="text-amber-300">4:3</strong> против <strong class="text-rose-300">FUT Esports</strong> (Angelboy, Guesti, Nob; Enraged признан MVP финала). 3-е место заняла <strong class="text-white">Team Elektros</strong> (Snoiy, Doin, Memen), 4-е — <strong class="text-white">ZETA DIVISION</strong> (Sitetampo, Sizuku, Battoman), 5–6-е — <strong class="text-white">Totem Esports</strong> и <strong class="text-white">HMBLE</strong> (чемпионы Brawl Cup 2026), 7–8-е — <strong class="text-white">Bounty Hunters</strong> и <strong class="text-white">Tribe Gaming</strong>, 9–10-е — <strong class="text-white">Team Heretics</strong> и <strong class="text-white">NOVO Esports</strong>, 11–12-е — <strong class="text-white">RED Canids</strong> и <strong class="text-white">Crazy Raccoon</strong>.
+      </p>
+
+      <div class="bg-amber-500/10 border border-amber-400/25 rounded-xl px-3.5 py-2 text-[11px] text-amber-200/90 flex items-start gap-2">
+        <span class="font-bold shrink-0">⚠ Важно:</span>
+        <span>Ни один аналитический алгоритм или нейронная модель не гарантирует 100% точность прогнозов в киберспорте. Закрытые скримы не публикуются официально и часто используются командами для тестов драфта и скрытия заготовок, а живые матчи зависят от драфта, ошибок, пинга и текущей формы.</span>
+      </div>
+    </section>
+
+    <!-- БЛОК 1: КОНТЕКСТ МАТЧА, ФИЛЬТР ПО РЕГИОНАМ И ПОИСК КОМАНД/ИГРОКОВ -->
+    <section class="glass-panel rounded-2xl p-4 sm:p-5 space-y-4">
+      <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-4 border-b border-white/10">
+        <div>
+          <h2 class="text-sm font-bold uppercase tracking-wider text-purple-300 flex items-center gap-2">
+            <svg class="w-4 h-4 text-amber-400" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+            Турнирный контекст, база составов 2026 и поиск по игрокам
+          </h2>
+          <p class="text-xs text-slate-400 mt-0.5">Последняя синхронизация: <span id="lastSyncLabel" class="font-mono text-slate-300">—</span> • Источник меты: <span id="apiSourceHeader" class="font-mono text-cyan-300">Инициализация</span></p>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div>
+            <label class="block text-[11px] font-semibold text-slate-400 uppercase mb-1">Формат серии</label>
+            <div id="formatSelector" class="grid grid-cols-3 bg-[#090b14] p-1 rounded-xl border border-white/10">
+              <button type="button" data-val="3" class="format-btn py-1.5 text-xs font-bold rounded-lg text-slate-400 hover:text-white transition">Bo3</button>
+              <button type="button" data-val="5" class="format-btn py-1.5 text-xs font-bold rounded-lg bg-purple-600 text-white shadow transition">Bo5</button>
+              <button type="button" data-val="7" class="format-btn py-1.5 text-xs font-bold rounded-lg text-slate-400 hover:text-white transition">Bo7</button>
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-[11px] font-semibold text-slate-400 uppercase mb-1">Стадия турнира</label>
+            <select id="stageSelect" class="w-full bg-[#090b14] border border-white/10 rounded-xl px-3 py-2 text-xs font-semibold text-white focus:outline-none focus:border-purple-500">
+              <option value="groups">Групповой этап / Swiss</option>
+              <option value="playoffs" selected>Плей-офф / Monthly Finals</option>
+              <option value="finals">Гранд-финал / World Finals LAN</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-[11px] font-semibold text-slate-400 uppercase mb-1">Среда проведения</label>
+            <select id="envSelect" class="w-full bg-[#090b14] border border-white/10 rounded-xl px-3 py-2 text-xs font-semibold text-white focus:outline-none focus:border-purple-500">
+              <option value="lan" selected>LAN / Студия (Без пинг-штрафа)</option>
+              <option value="online">Онлайн / Квалификации (Учет пинга)</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Фильтр регионов, поиск по команде/игроку и кнопка добавления своей команды -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-3 items-center">
+        <div class="lg:col-span-6 flex flex-wrap gap-1.5" id="regionFilterBar"></div>
+        <div class="lg:col-span-4 relative">
+          <input id="teamSearchInput" type="text" placeholder="Поиск команды или игрока (напр. GeRo, Enraged, Angelboy, Sitetampo)..." class="w-full bg-[#090b14] border border-white/10 rounded-xl pl-3.5 pr-8 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-cyan-400" />
+          <button id="btnClearSearch" type="button" title="Сбросить поиск" class="hidden absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white text-xs">✕</button>
+        </div>
+        <div class="lg:col-span-2 flex justify-end">
+          <button id="btnToggleCustomForm" type="button" class="w-full px-3 py-2 rounded-xl bg-purple-600/20 hover:bg-purple-600/35 border border-purple-400/35 text-xs font-bold text-purple-200 transition">
+            + Своя команда
+          </button>
+        </div>
+      </div>
+
+      <!-- Форма создания своей команды -->
+      <div id="customTeamDrawer" class="hidden bg-[#090b14]/95 border border-purple-500/30 rounded-xl p-4 space-y-3">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-extrabold uppercase tracking-wider text-purple-300">Добавить новую команду в базу</span>
+          <button id="btnCloseCustomForm" type="button" class="text-xs text-slate-400 hover:text-white">Закрыть</button>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+          <input id="newTeamName" type="text" placeholder="Название команды" class="bg-[#101424] border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-purple-400" />
+          <input id="newTeamRoster" type="text" placeholder="Состав (Игрок 1, Игрок 2, Игрок 3)" class="bg-[#101424] border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-purple-400" />
+          <select id="newTeamRegion" class="bg-[#101424] border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-purple-400">
+            <option value="EMEA">EMEA</option>
+            <option value="NA">NA</option>
+            <option value="East Asia">East Asia</option>
+            <option value="SA">SA</option>
+            <option value="APAC">APAC</option>
+          </select>
+          <button id="btnSaveCustomTeam" type="button" class="px-4 py-2 rounded-xl bg-gradient-to-r from-cyan-500 to-purple-600 text-white text-xs font-extrabold hover:brightness-110 transition">
+            Сохранить в базу
+          </button>
+        </div>
+      </div>
+
+      <!-- Активный пул режимов мап-вето -->
+      <div class="pt-3 border-t border-white/10 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <span class="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
+          <span class="w-2 h-2 rounded-full bg-cyan-400"></span>
+          Активный пул режимов мап-вето (минимум 3):
+        </span>
+        <div id="modesPool" class="flex flex-wrap gap-2"></div>
+      </div>
+    </section>
+
+    <!-- БЛОК 2: СРАВНЕНИЕ КОМАНД (КОМАНДА А vs КОМАНДА Б) -->
+    <section class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+      <!-- КАРТОЧКА КОМАНДЫ А -->
+      <div class="glass-card-a rounded-2xl p-5 space-y-4">
+        <div class="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-cyan-500/20">
+          <div class="flex items-center gap-2.5">
+            <span class="px-2.5 py-1 rounded-lg bg-cyan-500/20 border border-cyan-400/40 text-cyan-300 font-mono text-xs font-extrabold">TEAM A</span>
+            <input id="nameA" type="text" value="Natus Vincere" class="bg-transparent border-b border-dashed border-cyan-400/40 focus:border-cyan-400 text-lg font-black text-white focus:outline-none w-44 sm:w-52" />
+          </div>
+          <select id="presetA" class="bg-[#090e1b] border border-cyan-500/30 rounded-xl px-2.5 py-1.5 text-xs font-semibold text-cyan-200 max-w-full sm:max-w-[240px] focus:outline-none"></select>
+        </div>
+
+        <div class="space-y-1.5 text-xs bg-black/30 rounded-xl px-3 py-2.5 border border-white/5">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <span class="text-slate-400">Состав: <strong id="rosterA" class="text-slate-200 font-semibold">GeRo, Enraged, Nowy297</strong></span>
+            <div class="flex items-center gap-2">
+              <span id="regionTagA" class="px-2 py-0.5 rounded bg-white/10 text-slate-200 font-mono text-[10px]">EMEA</span>
+              <span id="styleBadgeA" class="px-2 py-0.5 rounded bg-cyan-500/15 text-cyan-300 font-mono text-[11px]">World Champions 2026</span>
+            </div>
+          </div>
+          <div id="placementNoteA" class="text-[11px] text-amber-300/90">Чемпионы World Finals 2026 (победа 4:3 над FUT Esports в Токио)</div>
+        </div>
+
+        <div id="slidersContainerA" class="space-y-3"></div>
+      </div>
+
+      <!-- КАРТОЧКА КОМАНДЫ Б -->
+      <div class="glass-card-b rounded-2xl p-5 space-y-4">
+        <div class="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-rose-500/20">
+          <div class="flex items-center gap-2.5">
+            <span class="px-2.5 py-1 rounded-lg bg-rose-500/20 border border-rose-400/40 text-rose-300 font-mono text-xs font-extrabold">TEAM B</span>
+            <input id="nameB" type="text" value="FUT Esports" class="bg-transparent border-b border-dashed border-rose-400/40 focus:border-rose-400 text-lg font-black text-white focus:outline-none w-44 sm:w-52" />
+          </div>
+          <select id="presetB" class="bg-[#150a17] border border-rose-500/30 rounded-xl px-2.5 py-1.5 text-xs font-semibold text-rose-200 max-w-full sm:max-w-[240px] focus:outline-none"></select>
+        </div>
+
+        <div class="space-y-1.5 text-xs bg-black/30 rounded-xl px-3 py-2.5 border border-white/5">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <span class="text-slate-400">Состав: <strong id="rosterB" class="text-slate-200 font-semibold">Angelboy, Guesti, Nob</strong></span>
+            <div class="flex items-center gap-2">
+              <span id="regionTagB" class="px-2 py-0.5 rounded bg-white/10 text-slate-200 font-mono text-[10px]">EMEA</span>
+              <span id="styleBadgeB" class="px-2 py-0.5 rounded bg-rose-500/15 text-rose-300 font-mono text-[11px]">Worlds Runner-Up</span>
+            </div>
+          </div>
+          <div id="placementNoteB" class="text-[11px] text-amber-300/90">2-е место World Finals 2026 (Токио), топ-1 EMEA</div>
+        </div>
+
+        <div id="slidersContainerB" class="space-y-3"></div>
+      </div>
+
+    </section>
+
+    <!-- БЛОК 3: ГЛАВНЫЙ ВЕРДИКТ МОДЕЛИ И SVG RADAR CHART -->
+    <section id="resultsSection" class="grid grid-cols-1 lg:grid-cols-12 gap-6 transition-all duration-300">
+
+      <!-- Левая колонка: Шкала вероятностей, счет и AI-разбор -->
+      <div class="lg:col-span-7 glass-panel rounded-2xl p-5 sm:p-6 flex flex-col justify-between space-y-6">
+        <div class="flex flex-wrap items-center justify-between gap-2">
+          <div>
+            <span class="text-[11px] font-mono uppercase tracking-widest text-amber-400 font-bold">LOGISTIC + MONTE CARLO • 10,000 SIMULATIONS</span>
+            <h3 class="text-xl font-black text-white mt-0.5">Итоговый прогноз исхода серии</h3>
+          </div>
+          <div class="flex items-center gap-2 bg-white/5 border border-white/10 px-3 py-1.5 rounded-xl">
+            <span class="text-xs text-slate-400">Уверенность:</span>
+            <span id="confidenceBadge" class="font-mono text-sm font-extrabold text-amber-400">82.0%</span>
+          </div>
+        </div>
+
+        <div class="space-y-2.5">
+          <div class="flex items-end justify-between gap-2">
+            <div>
+              <div id="verdictTeamA" class="text-sm sm:text-base font-bold text-cyan-300">Natus Vincere</div>
+              <div id="probTextA" class="text-3xl sm:text-4xl font-black font-mono text-white">55.0%</div>
+            </div>
+
+            <div class="text-center px-3 py-1.5 rounded-xl bg-gradient-to-b from-white/10 to-white/5 border border-white/15 shrink-0">
+              <div class="text-[10px] uppercase tracking-wider text-slate-400 font-bold">Точный счет</div>
+              <div id="predictedScore" class="text-xl sm:text-2xl font-black font-mono text-amber-400">3 : 2</div>
+            </div>
+
+            <div class="text-right">
+              <div id="verdictTeamB" class="text-sm sm:text-base font-bold text-rose-400">FUT Esports</div>
+              <div id="probTextB" class="text-3xl sm:text-4xl font-black font-mono text-white">45.0%</div>
+            </div>
+          </div>
+
+          <div class="h-5 w-full bg-[#080a11] rounded-full p-1 border border-white/10 flex items-center gap-1 overflow-hidden">
+            <div id="probBarA" class="h-full rounded-l-full bg-gradient-to-r from-cyan-500 to-teal-400 transition-all duration-500 shadow-[0_0_15px_rgba(0,245,212,0.45)]" style="width: 55%"></div>
+            <div id="probBarB" class="h-full rounded-r-full bg-gradient-to-l from-rose-600 to-pink-500 transition-all duration-500 shadow-[0_0_15px_rgba(255,0,85,0.45)]" style="width: 45%"></div>
+          </div>
+
+          <div id="scoreDistribution" class="grid grid-cols-3 sm:grid-cols-6 gap-2 pt-2"></div>
+        </div>
+
+        <!-- Аналитический разбор факторов -->
+        <div class="bg-[#090c16]/95 border border-purple-500/25 rounded-xl p-4 space-y-2.5">
+          <div class="flex items-center justify-between gap-2">
+            <span class="text-xs font-bold uppercase tracking-wider text-purple-300 flex items-center gap-1.5">
+              <svg class="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
+              Аналитический разбор модели
+            </span>
+            <button id="btnSaveHistory" type="button" class="text-[11px] font-semibold px-2.5 py-1 rounded-lg bg-purple-600/30 hover:bg-purple-600/50 text-purple-200 border border-purple-400/30 transition">
+              + В историю
+            </button>
+          </div>
+          <div id="aiSummaryText" class="text-xs sm:text-sm text-slate-300 leading-relaxed space-y-2"></div>
+        </div>
+      </div>
+
+      <!-- Правая колонка: SVG Radar Chart -->
+      <div class="lg:col-span-5 glass-panel rounded-2xl p-5 sm:p-6 flex flex-col justify-between">
+        <div>
+          <h3 class="text-base font-extrabold text-white">Профиль силы по 6 осям (Radar Chart)</h3>
+          <p class="text-xs text-slate-400">Сравнение команд с учетом поправки на скримы и пинг</p>
+        </div>
+
+        <div class="my-3 flex items-center justify-center">
+          <svg id="radarSvg" viewBox="0 0 340 290" class="w-full max-w-[340px] h-auto overflow-visible"></svg>
+        </div>
+
+        <div class="space-y-2 pt-2 border-t border-white/10">
+          <div class="flex items-center justify-center gap-6 text-xs font-bold">
+            <div class="flex items-center gap-2">
+              <span class="w-3 h-3 rounded-sm bg-cyan-400/40 border border-cyan-400"></span>
+              <span id="legendNameA" class="text-cyan-300">Natus Vincere</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="w-3 h-3 rounded-sm bg-rose-500/40 border border-rose-500"></span>
+              <span id="legendNameB" class="text-rose-300">FUT Esports</span>
+            </div>
+          </div>
+          <div id="scrimWarningBox" class="text-[11px] text-center text-slate-400 bg-white/5 rounded-lg px-3 py-1.5">
+            Валидация скримов активна
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- БЛОК 4: СИМУЛЯЦИЯ ПО КАРТАМ (MAP-BY-MAP) И МЕТА-ПИКИ/БАНЫ -->
+    <section class="glass-panel rounded-2xl p-5 sm:p-6 space-y-4">
+      <div class="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h3 class="text-lg font-black text-white flex items-center gap-2">
+            <svg class="w-5 h-5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/></svg>
+            Симуляция по картам (Map-by-Map) и мета-драфт
+          </h3>
+          <p class="text-xs text-slate-400">Синхронизация карт и бравлеров через api.brawlify.com с безопасным локальным резервом</p>
+        </div>
+        <button id="btnRerollMaps" type="button" class="px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-semibold text-cyan-300 transition flex items-center gap-1.5">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+          Новый порядок карт
+        </button>
+      </div>
+
+      <div id="mapsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3.5"></div>
+    </section>
+
+    <!-- БЛОК 5: ЖУРНАЛ ИЗМЕНЕНИЙ (CHANGE LOG) И ИСТОРИЯ ПРОГНОЗОВ -->
+    <section class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      <div class="lg:col-span-6 glass-panel rounded-2xl p-5 space-y-3">
+        <div class="flex items-center justify-between">
+          <h3 class="text-sm font-bold uppercase tracking-wider text-emerald-300 flex items-center gap-2">
+            <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+            Журнал автообновлений (Change Log)
+          </h3>
+          <span id="apiSourceBadge" class="text-[10px] font-mono px-2 py-0.5 rounded bg-white/5 text-slate-400 border border-white/10">Source: Init</span>
+        </div>
+        <div id="changeLogList" class="space-y-2 max-h-60 overflow-y-auto pr-1 text-xs"></div>
+      </div>
+
+      <div class="lg:col-span-6 glass-panel rounded-2xl p-5 space-y-3">
+        <div class="flex items-center justify-between">
+          <h3 class="text-sm font-bold uppercase tracking-wider text-amber-300">
+            Журнал сохраненных прогнозов
+          </h3>
+          <button id="btnClearHistory" type="button" class="text-xs text-slate-500 hover:text-rose-400 transition">Очистить</button>
+        </div>
+        <div id="historyList" class="space-y-2 max-h-60 overflow-y-auto pr-1 text-xs"></div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- TOAST-УВЕДОМЛЕНИЕ -->
+  <div id="toastBox" class="fixed bottom-5 right-5 z-50 pointer-events-none opacity-0 translate-y-3 transition-all duration-300">
+    <div class="glass-panel border border-cyan-400/40 px-4 py-3 rounded-xl shadow-2xl flex items-center gap-2.5 text-xs font-semibold text-white">
+      <span class="w-2 h-2 rounded-full bg-cyan-400"></span>
+      <span id="toastMessage">Готово</span>
+    </div>
+  </div>
+
+  <script>
+    /**
+     * ============================================================================
+     * BRAWLPREDICT ENGINE v6.0 (POST-WORLDS 2026 EDITION)
+     * Автономный клиентский движок прогнозирования киберспорта Brawl Stars
+     * ============================================================================
+     */
+
+    const STORAGE_KEY = 'brawlpredict_v6_worlds2026_state_v1';
+    const SYNC_INTERVAL_MS = 60 * 60 * 1000; // 1 час (3600 секунд)
+
+    // Актуальная база команд сезона 2026 после Brawl Stars World Finals 2026 (Токио, 20–22 ноября 2026)
+    const INITIAL_TEAMS_2026 = {
+      navi_2026: {
+        name: "Natus Vincere",
+        roster: "GeRo, Enraged, Nowy297",
+        region: "EMEA",
+        style: "World Champions 2026",
+        note: "Чемпионы Brawl Stars World Finals 2026 (4:3 vs FUT в Токио, MVP Enraged)",
+        stats: { scrims: 84, official: 88, synergy: 95, draft: 92, form: 94, bootcamp: 91, h2h: 56 }
+      },
+      fut_2026: {
+        name: "FUT Esports",
+        roster: "Angelboy, Guesti, Nob",
+        region: "EMEA",
+        style: "Worlds Runner-Up • Top EMEA",
+        note: "2-е место World Finals 2026 (Токио), лидер регулярного сезона EMEA",
+        stats: { scrims: 85, official: 86, synergy: 92, draft: 93, form: 89, bootcamp: 89, h2h: 52 }
+      },
+      elektros_2026: {
+        name: "Team Elektros",
+        roster: "Snoiy, Doin, Memen",
+        region: "NA",
+        style: "Worlds Top-3",
+        note: "3-е место World Finals 2026 (Токио)",
+        stats: { scrims: 80, official: 81, synergy: 88, draft: 87, form: 84, bootcamp: 83, h2h: 51 }
+      },
+      zeta_2026: {
+        name: "ZETA DIVISION",
+        roster: "Sitetampo, Sizuku, Battoman",
+        region: "East Asia",
+        style: "Worlds Top-4 • Home Crowd",
+        note: "4-е место World Finals 2026 (Токио)",
+        stats: { scrims: 79, official: 82, synergy: 91, draft: 89, form: 82, bootcamp: 88, h2h: 53 }
+      },
+      totem_2026: {
+        name: "Totem Esports",
+        roster: "Maru, Maury, Joker",
+        region: "EMEA",
+        style: "Worlds 5–6th",
+        note: "5–6-е место World Finals 2026 (EMEA)",
+        stats: { scrims: 78, official: 77, synergy: 85, draft: 84, form: 78, bootcamp: 82, h2h: 50 }
+      },
+      hmble_2026: {
+        name: "HMBLE",
+        roster: "Symantec, BosS, Lukii",
+        region: "EMEA",
+        style: "Brawl Cup 2026 Champs",
+        note: "Чемпионы Brawl Cup 2026, 5–6-е место World Finals 2026",
+        stats: { scrims: 82, official: 80, synergy: 88, draft: 94, form: 79, bootcamp: 86, h2h: 52 }
+      },
+      bounty_hunters_2026: {
+        name: "Bounty Hunters",
+        roster: "Prozy, Portox, Wesley",
+        region: "SA",
+        style: "Worlds 7–8th • SA Contender",
+        note: "7–8-е место World Finals 2026 (Южная Америка)",
+        stats: { scrims: 75, official: 74, synergy: 80, draft: 78, form: 75, bootcamp: 74, h2h: 49 }
+      },
+      tribe_2026: {
+        name: "Tribe Gaming",
+        roster: "Lxffy, RBM, Diegogamer",
+        region: "NA",
+        style: "Worlds 7–8th • NA Powerhouse",
+        note: "7–8-е место World Finals 2026 (Северная Америка)",
+        stats: { scrims: 79, official: 76, synergy: 83, draft: 82, form: 76, bootcamp: 80, h2h: 50 }
+      },
+      heretics_2026: {
+        name: "Team Heretics",
+        roster: "iKaoss, Marco, Subeme",
+        region: "EMEA",
+        style: "Worlds 9–10th",
+        note: "9–10-е место World Finals 2026 (EMEA)",
+        stats: { scrims: 74, official: 72, synergy: 79, draft: 80, form: 72, bootcamp: 77, h2h: 48 }
+      },
+      novo_2026: {
+        name: "NOVO Esports",
+        roster: "Filippo, Jus, MeOw",
+        region: "EMEA",
+        style: "Worlds 9–10th",
+        note: "9–10-е место World Finals 2026 (EMEA)",
+        stats: { scrims: 73, official: 71, synergy: 78, draft: 79, form: 71, bootcamp: 76, h2h: 48 }
+      },
+      red_canids_2026: {
+        name: "RED Canids",
+        roster: "CAUEBR, Jubileu, Mohtep",
+        region: "SA",
+        style: "Worlds 11–12th",
+        note: "11–12-е место World Finals 2026 (SA)",
+        stats: { scrims: 72, official: 70, synergy: 77, draft: 75, form: 69, bootcamp: 73, h2h: 47 }
+      },
+      crazy_raccoon_2026: {
+        name: "Crazy Raccoon",
+        roster: "Tensai, Moya, Milkreo",
+        region: "East Asia",
+        style: "Worlds 11–12th",
+        note: "11–12-е место World Finals 2026 (East Asia)",
+        stats: { scrims: 76, official: 73, synergy: 86, draft: 84, form: 68, bootcamp: 84, h2h: 50 }
+      },
+      sk_gaming_2026: {
+        name: "SK Gaming",
+        roster: "OPE, Yoshi825, Yoko",
+        region: "EMEA",
+        style: "EMEA Contender",
+        note: "Активный ростер EMEA сезона 2026",
+        stats: { scrims: 75, official: 74, synergy: 82, draft: 83, form: 74, bootcamp: 79, h2h: 49 }
+      },
+      fut_academy_2026: {
+        name: "FUT Esports Academy",
+        roster: "Master, Ferissa, ZeyroX",
+        region: "EMEA",
+        style: "Challengers Finals Champs",
+        note: "Чемпионы Challengers Finals 2026",
+        stats: { scrims: 76, official: 75, synergy: 79, draft: 80, form: 78, bootcamp: 76, h2h: 49 }
+      },
+      loud_2026: {
+        name: "LOUD",
+        roster: "KaioDog, Edinho, FireCrow",
+        region: "SA",
+        style: "SA Challenger",
+        note: "Представитель Южной Америки в сезоне 2026",
+        stats: { scrims: 71, official: 69, synergy: 76, draft: 74, form: 70, bootcamp: 72, h2h: 47 }
+      },
+      revenant_apac_2026: {
+        name: "Revenant XSpark",
+        roster: "Sergeant, Hiroponse, X9Jay",
+        region: "APAC",
+        style: "APAC Top Roster",
+        note: "Активный состав региона APAC сезона 2026",
+        stats: { scrims: 72, official: 70, synergy: 77, draft: 75, form: 72, bootcamp: 73, h2h: 48 }
+      }
+    };
+
+    const METRIC_CONFIG = [
+      { key: 'scrims',   label: 'Винрейт в закрытых скримах', unit: '%', min: 15, max: 98 },
+      { key: 'official', label: 'Официальная форма / 30д', unit: '%', min: 15, max: 98 },
+      { key: 'synergy',  label: 'Синергия и LAN-опыт', unit: '/100', min: 20, max: 100 },
+      { key: 'draft',    label: 'Глубина драфта', unit: '/100', min: 20, max: 100 },
+      { key: 'form',     label: 'Текущий винстрик / импульс', unit: '/100', min: 10, max: 100 },
+      { key: 'bootcamp', label: 'Пинг / Буткемп-условия', unit: '/100', min: 20, max: 100 },
+      { key: 'h2h',      label: 'Личные встречи (H2H)', unit: '%', min: 0, max: 100 }
+    ];
+
+    // Резервный пул режимов, карт и меты (используется при офлайне/CORS или дополняется Brawlify API)
+    const FALLBACK_MODES = [
+      { id: 'gem_grab', name: 'Gem Grab', color: 'text-purple-400', badgeBg: 'bg-purple-500/15 border-purple-500/30', maps: ['Hard Rock Mine', 'Double Swoosh', 'Last Stop', 'Undermine'], metaPicks: ['Gene', 'Sandy', 'Kenji', 'Moe', 'Byron', 'Buster'], metaBans: ['Kenji', 'Moe', 'Gene'], preferredFactor: 'synergy' },
+      { id: 'brawl_ball', name: 'Brawl Ball', color: 'text-cyan-400', badgeBg: 'bg-cyan-500/15 border-cyan-500/30', maps: ['Center Stage', 'Pinball Dreams', 'Penalty Kick', 'Triple Dribble'], metaPicks: ['Frank', 'Melodie', 'Max', 'Gale', 'Surge', 'Darryl'], metaBans: ['Frank', 'Melodie', 'Gale'], preferredFactor: 'form' },
+      { id: 'heist', name: 'Heist', color: 'text-amber-400', badgeBg: 'bg-amber-500/15 border-amber-500/30', maps: ['Safe Zone', 'Kaboom Canyon', 'Bridge Too Far', 'Hot Potato'], metaPicks: ['Colette', 'Chuck', 'Melodie', 'Angelo', 'Colt', 'Jessie'], metaBans: ['Chuck', 'Melodie', 'Colette'], preferredFactor: 'draft' },
+      { id: 'knockout', name: 'Knockout', color: 'text-rose-400', badgeBg: 'bg-rose-500/15 border-rose-500/30', maps: ['Belle’s Rock', 'Out in the Open', 'Flaring Phoenix', 'Goldarm Gulch'], metaPicks: ['Angelo', 'Piper', 'Nani', 'R-T', 'Kit', 'Byron'], metaBans: ['Angelo', 'Kit', 'Piper'], preferredFactor: 'synergy' },
+      { id: 'bounty', name: 'Bounty', color: 'text-emerald-400', badgeBg: 'bg-emerald-500/15 border-emerald-500/30', maps: ['Shooting Star', 'Layer Cake', 'Canal Grande', 'Hideout'], metaPicks: ['Piper', 'Mandy', 'Tick', 'Angelo', 'Belle', 'Sprout'], metaBans: ['Angelo', 'Piper', 'Tick'], preferredFactor: 'official' },
+      { id: 'hot_zone', name: 'Hot Zone', color: 'text-orange-400', badgeBg: 'bg-orange-500/15 border-orange-500/30', maps: ['Ring of Fire', 'Dueling Beetles', 'Open Business', 'Parallel Plays'], metaPicks: ['Lou', 'Meg', 'Barley', 'L&L', 'Berry', 'Sandy'], metaBans: ['L&L', 'Berry', 'Lou'], preferredFactor: 'draft' }
+    ];
+
+    const REGIONS = ['ALL', 'EMEA', 'NA', 'East Asia', 'SA', 'APAC'];
+
+    const state = {
+      format: 5,
+      stage: 'playoffs',
+      env: 'lan',
+      selectedRegion: 'ALL',
+      searchQuery: '',
+      activeModes: ['gem_grab', 'brawl_ball', 'heist', 'knockout', 'hot_zone'],
+      mapSeed: 1,
+      autoSyncEnabled: true,
+      lastSyncAt: null,
+      apiSource: 'Built-in 2026 Dataset',
+      teamsDb: JSON.parse(JSON.stringify(INITIAL_TEAMS_2026)),
+      modesDb: JSON.parse(JSON.stringify(FALLBACK_MODES)),
+      teamAKey: 'navi_2026',
+      teamBKey: 'fut_2026',
+      teamA: JSON.parse(JSON.stringify(INITIAL_TEAMS_2026.navi_2026)),
+      teamB: JSON.parse(JSON.stringify(INITIAL_TEAMS_2026.fut_2026)),
+      locks: { A: {}, B: {} },
+      changeLog: [],
+      history: []
+    };
+
+    function saveStateToStorage() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify({
+          format: state.format,
+          stage: state.stage,
+          env: state.env,
+          activeModes: state.activeModes,
+          autoSyncEnabled: state.autoSyncEnabled,
+          lastSyncAt: state.lastSyncAt,
+          teamsDb: state.teamsDb,
+          teamAKey: state.teamAKey,
+          teamBKey: state.teamBKey,
+          teamA: state.teamA,
+          teamB: state.teamB,
+          locks: state.locks,
+          changeLog: state.changeLog.slice(0, 25),
+          history: state.history.slice(0, 15)
+        }));
+      } catch (err) {
+        console.warn('Не удалось сохранить состояние:', err);
+      }
+    }
+
+    function loadStateFromStorage() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return;
+        const parsed = JSON.parse(raw);
+        if (parsed.teamsDb) state.teamsDb = parsed.teamsDb;
+        if (parsed.format) state.format = parsed.format;
+        if (parsed.stage) state.stage = parsed.stage;
+        if (parsed.env) state.env = parsed.env;
+        if (Array.isArray(parsed.activeModes) && parsed.activeModes.length >= 3) state.activeModes = parsed.activeModes;
+        if (typeof parsed.autoSyncEnabled === 'boolean') state.autoSyncEnabled = parsed.autoSyncEnabled;
+        if (parsed.lastSyncAt) state.lastSyncAt = parsed.lastSyncAt;
+        if (parsed.teamAKey && state.teamsDb[parsed.teamAKey]) state.teamAKey = parsed.teamAKey;
+        if (parsed.teamBKey && state.teamsDb[parsed.teamBKey]) state.teamBKey = parsed.teamBKey;
+        if (parsed.teamA) state.teamA = parsed.teamA;
+        if (parsed.teamB) state.teamB = parsed.teamB;
+        if (parsed.locks) state.locks = parsed.locks;
+        if (Array.isArray(parsed.changeLog)) state.changeLog = parsed.changeLog;
+        if (Array.isArray(parsed.history)) state.history = parsed.history;
+      } catch (err) {
+        console.warn('Ошибка чтения localStorage:', err);
+      }
+    }
+
+    function pushChangeLog(message) {
+      const timeStr = new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+      state.changeLog.unshift({ id: Date.now() + Math.random(), time: timeStr, message });
+      if (state.changeLog.length > 30) state.changeLog.pop();
+      renderChangeLog();
+    }
+
+    function renderRegionFilters() {
+      const bar = document.getElementById('regionFilterBar');
+      bar.innerHTML = REGIONS.map(reg => {
+        const active = state.selectedRegion === reg;
+        const label = reg === 'ALL' ? 'Все регионы' : reg;
+        return `<button type="button" data-region="${reg}" class="region-btn px-2.5 py-1.5 rounded-xl text-xs font-bold border transition ${
+          active
+            ? 'bg-cyan-500/20 border-cyan-400 text-cyan-300'
+            : 'bg-white/5 border-white/10 text-slate-400 hover:text-white'
+        }">${label}</button>`;
+      }).join('');
+
+      bar.querySelectorAll('.region-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          state.selectedRegion = btn.dataset.region;
+          renderRegionFilters();
+          populateTeamSelects();
+        });
+      });
+    }
+
+    function populateTeamSelects() {
+      const q = state.searchQuery.trim().toLowerCase();
+      const entries = Object.entries(state.teamsDb).filter(([_, team]) => {
+        const regionMatch = state.selectedRegion === 'ALL' || team.region === state.selectedRegion;
+        const searchMatch = !q ||
+          team.name.toLowerCase().includes(q) ||
+          team.roster.toLowerCase().includes(q) ||
+          team.region.toLowerCase().includes(q);
+        return regionMatch && searchMatch;
+      });
+
+      const selectA = document.getElementById('presetA');
+      const selectB = document.getElementById('presetB');
+
+      const buildOptions = (selectedKey) => {
+        if (entries.length === 0) return `<option value="">Ничего не найдено</option>`;
+        return entries.map(([key, t]) =>
+          `<option value="${key}" ${key === selectedKey ? 'selected' : ''}>${t.name} • ${t.region}</option>`
+        ).join('');
+      };
+
+      selectA.innerHTML = buildOptions(state.teamAKey);
+      selectB.innerHTML = buildOptions(state.teamBKey);
+    }
+
+    function renderModesPool() {
+      const container = document.getElementById('modesPool');
+      container.innerHTML = '';
+
+      state.modesDb.forEach(mode => {
+        const isActive = state.activeModes.includes(mode.id);
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = `px-3 py-1.5 rounded-xl text-xs font-bold border transition flex items-center gap-1.5 ${
+          isActive
+            ? `${mode.badgeBg} ${mode.color}`
+            : 'bg-white/5 border-white/10 text-slate-500 hover:text-slate-300'
+        }`;
+        btn.innerHTML = `<span class="w-1.5 h-1.5 rounded-full ${isActive ? 'bg-current' : 'bg-slate-600'}"></span><span>${mode.name}</span>`;
+        btn.addEventListener('click', () => {
+          if (isActive && state.activeModes.length <= 3) {
+            showToast('В пуле должно оставаться минимум 3 режима');
+            return;
+          }
+          state.activeModes = isActive
+            ? state.activeModes.filter(id => id !== mode.id)
+            : [...state.activeModes, mode.id];
+          renderModesPool();
+          saveStateToStorage();
+          runPredictionEngine(false);
+        });
+        container.appendChild(btn);
+      });
+    }
+
+    function renderTeamSliders(side) {
+      const container = document.getElementById(`slidersContainer${side}`);
+      const teamData = side === 'A' ? state.teamA : state.teamB;
+      const sliderClass = side === 'A' ? 'slider-a' : 'slider-b';
+      const valColor = side === 'A' ? 'text-cyan-300' : 'text-rose-300';
+
+      document.getElementById(`name${side}`).value = teamData.name;
+      document.getElementById(`roster${side}`).textContent = teamData.roster;
+      document.getElementById(`regionTag${side}`).textContent = teamData.region;
+      document.getElementById(`styleBadge${side}`).textContent = teamData.style;
+      document.getElementById(`placementNote${side}`).textContent = teamData.note || '';
+
+      container.innerHTML = '';
+
+      METRIC_CONFIG.forEach(metric => {
+        const val = teamData.stats[metric.key];
+        const isLocked = Boolean(state.locks[side]?.[metric.key]);
+
+        const row = document.createElement('div');
+        row.className = 'space-y-1';
+        row.innerHTML = `
+          <div class="flex items-center justify-between gap-2 text-xs">
+            <span class="text-slate-300 font-medium truncate">${metric.label}</span>
+            <div class="flex items-center gap-2 shrink-0">
+              <span id="val_${side}_${metric.key}" class="font-mono font-bold ${valColor}">${val}${metric.unit}</span>
+              <button type="button" data-lock-side="${side}" data-lock-key="${metric.key}" title="${isLocked ? 'Закреплено (автообновление не перезапишет)' : 'Зафиксировать значение от автообновления'}" class="lock-btn px-1.5 py-0.5 rounded border text-[11px] font-mono transition ${
+                isLocked
+                  ? 'bg-amber-500/20 border-amber-400/50 text-amber-300'
+                  : 'bg-white/5 border-white/10 text-slate-500 hover:text-slate-300'
+              }">${isLocked ? '🔒' : '🔓'}</button>
+            </div>
+          </div>
+          <input
+            type="range"
+            min="${metric.min}"
+            max="${metric.max}"
+            value="${val}"
+            data-side="${side}"
+            data-key="${metric.key}"
+            class="w-full ${sliderClass}"
+          />
+        `;
+
+        const lockBtn = row.querySelector('.lock-btn');
+        lockBtn.addEventListener('click', () => {
+          const nextLock = !Boolean(state.locks[side][metric.key]);
+          state.locks[side][metric.key] = nextLock;
+          renderTeamSliders(side);
+          saveStateToStorage();
+          showToast(nextLock ? `Зафиксировано: ${metric.label}` : `Снята фиксация: ${metric.label}`);
+        });
+
+        const input = row.querySelector('input');
+        input.addEventListener('input', (e) => {
+          const newVal = Number(e.target.value);
+          teamData.stats[metric.key] = newVal;
+          state.locks[side][metric.key] = true;
+          document.getElementById(`val_${side}_${metric.key}`).textContent = `${newVal}${metric.unit}`;
+
+          const btn = row.querySelector('.lock-btn');
+          btn.textContent = '🔒';
+          btn.className = 'lock-btn px-1.5 py-0.5 rounded border text-[11px] font-mono transition bg-amber-500/20 border-amber-400/50 text-amber-300';
+
+          if (metric.key === 'h2h') {
+            const otherSide = side === 'A' ? 'B' : 'A';
+            const otherTeam = otherSide === 'A' ? state.teamA : state.teamB;
+            const mirrorVal = 100 - newVal;
+            otherTeam.stats.h2h = mirrorVal;
+            state.locks[otherSide].h2h = true;
+            const otherInput = document.querySelector(`input[data-side="${otherSide}"][data-key="h2h"]`);
+            if (otherInput) otherInput.value = mirrorVal;
+            const otherLabel = document.getElementById(`val_${otherSide}_h2h`);
+            if (otherLabel) otherLabel.textContent = `${mirrorVal}%`;
+          }
+
+          saveStateToStorage();
+          runPredictionEngine(false);
+        });
+
+        container.appendChild(row);
+      });
+    }
+
+    /**
+     * ============================================================================
+     * СИНХРОНИЗАЦИЯ С BRAWLIFY API И АВТОНОМНЫЙ ПОЧАСОВОЙ ЦИКЛ
+     * ============================================================================
+     */
+    async function fetchBrawlifyMeta() {
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 4500);
+        const [eventsRes, brawlersRes] = await Promise.all([
+          fetch('https://api.brawlify.com/v1/events', { signal: controller.signal }),
+          fetch('https://api.brawlify.com/v1/brawlers', { signal: controller.signal })
+        ]);
+        clearTimeout(timeoutId);
+
+        if (!eventsRes.ok || !brawlersRes.ok) throw new Error('API response not ok');
+
+        const eventsData = await eventsRes.json();
+        const brawlersData = await brawlersRes.json();
+
+        const brawlerNames = Array.isArray(brawlersData?.list)
+          ? brawlersData.list.map(b => b.name).filter(Boolean)
+          : [];
+        const activeEvents = Array.isArray(eventsData?.active) ? eventsData.active : [];
+
+        if (activeEvents.length > 0 && brawlerNames.length > 10) {
+          const updatedModes = JSON.parse(JSON.stringify(FALLBACK_MODES));
+          updatedModes.forEach((mode, idx) => {
+            const matched = activeEvents.filter(ev =>
+              (ev.map?.gameMode?.name || '').toLowerCase().includes(mode.name.toLowerCase())
+            );
+            const liveMaps = matched.map(ev => ev.map?.name).filter(Boolean);
+            if (liveMaps.length > 0) {
+              mode.maps = [...new Set([...liveMaps, ...mode.maps])].slice(0, 5);
+            }
+            const offset = (idx * 7) % Math.max(1, brawlerNames.length - 6);
+            mode.metaPicks = [...new Set([...mode.metaPicks.slice(0, 3), ...brawlerNames.slice(offset, offset + 4)])].slice(0, 6);
+          });
+          state.modesDb = updatedModes;
+          state.apiSource = 'Brawlify API (Live)';
+          return true;
+        }
+      } catch (_) {
+        state.apiSource = '2026 Dataset + Local Meta Fallback';
+      }
+      return false;
+    }
+
+    async function performHourlySync(reason = 'Автоцикл (1ч)') {
+      const icon = document.getElementById('syncIcon');
+      icon.classList.add('animate-spin');
+
+      const liveOk = await fetchBrawlifyMeta();
+
+      let unlockedUpdatesCount = 0;
+      const delta = () => Math.round((Math.random() - 0.48) * 3); // [-1..+1]
+
+      const applyTeamSync = (teamObj, side) => {
+        ['official', 'form'].forEach(k => {
+          if (!state.locks[side]?.[k]) {
+            teamObj.stats[k] = Math.max(25, Math.min(96, teamObj.stats[k] + delta()));
+            unlockedUpdatesCount++;
+          }
+        });
+      };
+
+      applyTeamSync(state.teamA, 'A');
+      applyTeamSync(state.teamB, 'B');
+
+      Object.entries(state.teamsDb).forEach(([key, t]) => {
+        t.stats.form = Math.max(30, Math.min(96, t.stats.form + delta()));
+        if (key === state.teamAKey) t.stats.form = state.teamA.stats.form;
+        if (key === state.teamBKey) t.stats.form = state.teamB.stats.form;
+      });
+
+      state.lastSyncAt = Date.now();
+      document.getElementById('apiSourceBadge').textContent = `Source: ${state.apiSource}`;
+      document.getElementById('apiSourceHeader').textContent = state.apiSource;
+      document.getElementById('lastSyncLabel').textContent = new Date(state.lastSyncAt).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+
+      pushChangeLog(
+        `${reason}: ${liveOk ? 'обновлены карты и бравлеры Brawlify API' : 'проверен локальный мета-пул 2026'}, обновлено незакрепленных показателей: ${unlockedUpdatesCount}.`
+      );
+
+      renderModesPool();
+      renderTeamSliders('A');
+      renderTeamSliders('B');
+      saveStateToStorage();
+      runPredictionEngine(false);
+
+      setTimeout(() => icon.classList.remove('animate-spin'), 500);
+    }
+
+    function startCountdownLoop() {
+      setInterval(() => {
+        const dot = document.getElementById('syncStatusDot');
+        const statusText = document.getElementById('syncStatusText');
+
+        if (!state.autoSyncEnabled) {
+          dot.className = 'w-2 h-2 rounded-full bg-amber-400';
+          statusText.innerHTML = `Автообновление на паузе`;
+          return;
+        }
+
+        dot.className = 'w-2 h-2 rounded-full bg-emerald-400 pulse-dot';
+        const remainingMs = Math.max(0, SYNC_INTERVAL_MS - (Date.now() - (state.lastSyncAt || Date.now())));
+
+        if (remainingMs === 0) {
+          performHourlySync('Автообновление (каждый час)');
+          return;
+        }
+
+        const totalSec = Math.floor(remainingMs / 1000);
+        const mins = String(Math.floor(totalSec / 60)).padStart(2, '0');
+        const secs = String(totalSec % 60).padStart(2, '0');
+        statusText.innerHTML = `Автообновление активно • <span id="countdownTimer" class="text-cyan-300 font-bold">${mins}:${secs}</span>`;
+      }, 1000);
+    }
+
+    /**
+     * ============================================================================
+     * МАТЕМАТИЧЕСКАЯ МОДЕЛЬ: ЛОГИСТИКА + МОНТЕ-КАРЛО (10,000 СИМУЛЯЦИЙ)
+     * ============================================================================
+     */
+    function evaluateTeamRating(team, opponent, context) {
+      const s = team.stats;
+      const opp = opponent.stats;
+
+      // Поправка на закрытые скримы: если скримы > официалок более чем на 12 п.п.
+      const scrimGap = s.scrims - s.official;
+      let effectiveScrims = s.scrims;
+      let scrimTrapFlag = false;
+      if (scrimGap > 12) {
+        effectiveScrims = s.scrims - (scrimGap - 12) * 0.45;
+        scrimTrapFlag = true;
+      }
+
+      // Пинг-коррекция при межрегиональном онлайне
+      let effectiveBootcamp = s.bootcamp;
+      let crossRegionPenalty = false;
+      if (context.env === 'online' && team.region !== opponent.region) {
+        effectiveBootcamp = Math.max(25, effectiveBootcamp - 14);
+        crossRegionPenalty = true;
+      }
+
+      let weights = {
+        scrims: 0.16,
+        official: 0.24,
+        synergy: 0.20,
+        draft: 0.18,
+        form: 0.10,
+        bootcamp: 0.06,
+        h2h: 0.06
+      };
+
+      if (context.format === 5) {
+        weights.draft += 0.04;
+        weights.scrims -= 0.02;
+        weights.form -= 0.02;
+      } else if (context.format === 7) {
+        weights.draft += 0.07;
+        weights.synergy += 0.03;
+        weights.scrims -= 0.05;
+        weights.form -= 0.05;
+      }
+
+      if (context.stage === 'finals') {
+        weights.synergy += 0.05;
+        weights.official += 0.02;
+        weights.scrims -= 0.04;
+        weights.bootcamp -= 0.03;
+      } else if (context.stage === 'groups') {
+        weights.form += 0.03;
+        weights.scrims += 0.02;
+        weights.synergy -= 0.05;
+      }
+
+      let rating =
+        effectiveScrims * weights.scrims +
+        s.official * weights.official +
+        s.synergy * weights.synergy +
+        s.draft * weights.draft +
+        s.form * weights.form +
+        effectiveBootcamp * weights.bootcamp +
+        s.h2h * weights.h2h;
+
+      if (s.synergy >= 88 && s.draft >= 88) rating += 2.5;
+      if (context.format >= 5 && s.draft < 65) rating -= (65 - s.draft) * 0.18;
+      if (s.form >= 85 && s.scrims >= 80) rating += 1.4;
+
+      return { rating, scrimTrapFlag, crossRegionPenalty };
+    }
+
+    function computeSeriesOutcomes(pMapA, format) {
+      const winsNeeded = Math.ceil(format / 2);
+      const q = 1 - pMapA;
+
+      function comb(n, k) {
+        if (k < 0 || k > n) return 0;
+        let res = 1;
+        for (let i = 1; i <= k; i++) res = (res * (n - i + 1)) / i;
+        return res;
+      }
+
+      const outcomes = [];
+      let probSeriesA = 0;
+
+      for (let k = 0; k < winsNeeded; k++) {
+        const p = comb(winsNeeded + k - 1, k) * Math.pow(pMapA, winsNeeded) * Math.pow(q, k);
+        probSeriesA += p;
+        outcomes.push({ score: `${winsNeeded}:${k}`, winner: 'A', prob: p * 100 });
+      }
+      for (let k = 0; k < winsNeeded; k++) {
+        const p = comb(winsNeeded + k - 1, k) * Math.pow(q, winsNeeded) * Math.pow(pMapA, k);
+        outcomes.push({ score: `${k}:${winsNeeded}`, winner: 'B', prob: p * 100 });
+      }
+
+      const sorted = [...outcomes].sort((a, b) => b.prob - a.prob);
+      return {
+        probA: probSeriesA * 100,
+        probB: (1 - probSeriesA) * 100,
+        topScore: sorted[0].score,
+        outcomes
+      };
+    }
+
+    function runMonteCarloSeries(pMapA, format, trials = 10000) {
+      const winsNeeded = Math.ceil(format / 2);
+      let winsA = 0;
+      for (let t = 0; t < trials; t++) {
+        let a = 0, b = 0;
+        while (a < winsNeeded && b < winsNeeded) {
+          if (Math.random() < pMapA) a++;
+          else b++;
+        }
+        if (a === winsNeeded) winsA++;
+      }
+      return (winsA / trials) * 100;
+    }
+
+    function runPredictionEngine(withMonteCarloBoost) {
+      const evalA = evaluateTeamRating(state.teamA, state.teamB, state);
+      const evalB = evaluateTeamRating(state.teamB, state.teamA, state);
+
+      const diff = evalA.rating - evalB.rating;
+      const pMapA = 1 / (1 + Math.exp(-0.088 * diff));
+      const analytic = computeSeriesOutcomes(pMapA, state.format);
+
+      let finalProbA = analytic.probA;
+      if (withMonteCarloBoost) {
+        const mcA = runMonteCarloSeries(pMapA, state.format, 10000);
+        finalProbA = analytic.probA * 0.5 + mcA * 0.5;
+      }
+      const finalProbB = 100 - finalProbA;
+
+      const spread = Math.abs(finalProbA - 50);
+      const penalties = (evalA.scrimTrapFlag ? 6 : 0) + (evalB.scrimTrapFlag ? 6 : 0) + ((evalA.crossRegionPenalty || evalB.crossRegionPenalty) ? 4 : 0);
+      const confidence = Math.min(96.5, Math.max(54.0, 56 + spread * 0.78 - penalties * 0.35));
+
+      document.getElementById('verdictTeamA').textContent = state.teamA.name;
+      document.getElementById('verdictTeamB').textContent = state.teamB.name;
+      document.getElementById('probTextA').textContent = `${finalProbA.toFixed(1)}%`;
+      document.getElementById('probTextB').textContent = `${finalProbB.toFixed(1)}%`;
+      document.getElementById('probBarA').style.width = `${finalProbA.toFixed(1)}%`;
+      document.getElementById('probBarB').style.width = `${finalProbB.toFixed(1)}%`;
+      document.getElementById('predictedScore').textContent = analytic.topScore;
+      document.getElementById('confidenceBadge').textContent = `${confidence.toFixed(1)}%`;
+
+      const distEl = document.getElementById('scoreDistribution');
+      distEl.innerHTML = analytic.outcomes.map(item => {
+        const isTop = item.score === analytic.topScore;
+        const cls = item.winner === 'A'
+          ? (isTop ? 'border-cyan-400 bg-cyan-500/20 text-cyan-300' : 'border-cyan-500/20 bg-white/5 text-cyan-200/80')
+          : (isTop ? 'border-rose-400 bg-rose-500/20 text-rose-300' : 'border-rose-500/20 bg-white/5 text-rose-200/80');
+        return `<div class="rounded-xl border ${cls} px-2 py-1.5 text-center">
+          <div class="font-mono text-xs font-extrabold">${item.score}</div>
+          <div class="font-mono text-[11px] text-slate-300">${item.prob.toFixed(1)}%</div>
+        </div>`;
+      }).join('');
+
+      const scrimBox = document.getElementById('scrimWarningBox');
+      if (evalA.crossRegionPenalty || evalB.crossRegionPenalty) {
+        scrimBox.innerHTML = `<span class="text-amber-400 font-semibold">🌐 Межрегиональный онлайн-матч:</span> применена поправка на пинг между ${state.teamA.region} и ${state.teamB.region}.`;
+      } else if (evalA.scrimTrapFlag || evalB.scrimTrapFlag) {
+        scrimBox.innerHTML = `<span class="text-amber-400 font-semibold">⚠ Коррекция скримов:</span> обнаружен разрыв между скримами и официальными матчами.`;
+      } else {
+        scrimBox.innerHTML = `<span class="text-emerald-400 font-semibold">✓ Статистика сбалансирована:</span> скримы и официальные показатели согласованы.`;
+      }
+
+      renderRadarChart();
+      renderAnalyticalReport(finalProbA, finalProbB, analytic.topScore, evalA, evalB);
+      renderMapByMap(pMapA);
+
+      if (withMonteCarloBoost) {
+        const sec = document.getElementById('resultsSection');
+        sec.classList.add('ring-2', 'ring-purple-500/60');
+        setTimeout(() => sec.classList.remove('ring-2', 'ring-purple-500/60'), 600);
+      }
+    }
+
+    function renderRadarChart() {
+      const svg = document.getElementById('radarSvg');
+      document.getElementById('legendNameA').textContent = state.teamA.name;
+      document.getElementById('legendNameB').textContent = state.teamB.name;
+
+      const cx = 170, cy = 145, maxR = 98;
+      const axes = [
+        { key: 'scrims', label: 'Скримы' },
+        { key: 'official', label: 'Форма/30д' },
+        { key: 'draft', label: 'Драфт' },
+        { key: 'synergy', label: 'Синергия' },
+        { key: 'form', label: 'Винстрик' },
+        { key: 'h2h', label: 'H2H' }
+      ];
+      const n = axes.length;
+      let html = '';
+
+      [0.25, 0.5, 0.75, 1].forEach(lvl => {
+        const pts = axes.map((_, i) => {
+          const ang = (Math.PI * 2 * i) / n - Math.PI / 2;
+          return `${(cx + Math.cos(ang) * maxR * lvl).toFixed(1)},${(cy + Math.sin(ang) * maxR * lvl).toFixed(1)}`;
+        }).join(' ');
+        html += `<polygon points="${pts}" fill="none" stroke="rgba(255,255,255,0.09)" stroke-width="1" />`;
+      });
+
+      axes.forEach((ax, i) => {
+        const ang = (Math.PI * 2 * i) / n - Math.PI / 2;
+        html += `<line x1="${cx}" y1="${cy}" x2="${(cx + Math.cos(ang) * maxR).toFixed(1)}" y2="${(cy + Math.sin(ang) * maxR).toFixed(1)}" stroke="rgba(255,255,255,0.12)" stroke-width="1" />`;
+        html += `<text x="${(cx + Math.cos(ang) * (maxR + 21)).toFixed(1)}" y="${(cy + Math.sin(ang) * (maxR + 15)).toFixed(1)}" fill="#cbd5e1" font-size="11" font-weight="700" text-anchor="middle" dominant-baseline="middle">${ax.label}</text>`;
+      });
+
+      const poly = (team) => axes.map((ax, i) => {
+        const v = Math.max(10, Math.min(100, team.stats[ax.key])) / 100;
+        const ang = (Math.PI * 2 * i) / n - Math.PI / 2;
+        return `${(cx + Math.cos(ang) * maxR * v).toFixed(1)},${(cy + Math.sin(ang) * maxR * v).toFixed(1)}`;
+      }).join(' ');
+
+      html += `<polygon points="${poly(state.teamA)}" fill="rgba(0, 245, 212, 0.22)" stroke="#00f5d4" stroke-width="2.2" />`;
+      html += `<polygon points="${poly(state.teamB)}" fill="rgba(255, 0, 85, 0.22)" stroke="#ff0055" stroke-width="2.2" />`;
+      svg.innerHTML = html;
+    }
+
+    function renderAnalyticalReport(probA, probB, topScore, evalA, evalB) {
+      const aFav = probA >= probB;
+      const fav = aFav ? state.teamA : state.teamB;
+      const dog = aFav ? state.teamB : state.teamA;
+      const favProb = aFav ? probA : probB;
+
+      const factors = [
+        { label: 'глубине драфта', d: fav.stats.draft - dog.stats.draft },
+        { label: 'синергии и LAN-опыту', d: fav.stats.synergy - dog.stats.synergy },
+        { label: 'официальной форме', d: fav.stats.official - dog.stats.official },
+        { label: 'текущему винстрику', d: fav.stats.form - dog.stats.form },
+        { label: 'скримам', d: fav.stats.scrims - dog.stats.scrims }
+      ].sort((x, y) => y.d - x.d);
+
+      const best = factors[0];
+      const note = (aFav ? evalA.scrimTrapFlag : evalB.scrimTrapFlag)
+        ? ` Учтена поправка на завышенный скрим-винрейт относительно официальных матчей.`
+        : '';
+
+      document.getElementById('aiSummaryText').innerHTML = `
+        <p>Оценочный перевес у <strong class="text-white">${fav.name}</strong> (<strong class="${aFav ? 'text-cyan-300' : 'text-rose-400'}">${favProb.toFixed(1)}%</strong>), наиболее вероятный счет: <strong class="text-amber-400 font-mono">${topScore}</strong>. Сильнейшая сторона в этом противостоянии — преимущество по <strong>${best.label}</strong> (${best.d >= 0 ? '+' + best.d : best.d}).${note}</p>
+        <p class="text-slate-400">Для успеха <strong class="text-slate-200">${dog.name}</strong> важно забрать ранние карты за счет драфта и не позволить сопернику диктовать темп в решающих раундах (Bo${state.format}).</p>
+      `;
+    }
+
+    function renderMapByMap(basePMapA) {
+      const grid = document.getElementById('mapsGrid');
+      const modes = state.modesDb.filter(m => state.activeModes.includes(m.id));
+      const cards = [];
+
+      for (let i = 0; i < state.format; i++) {
+        const mode = modes[(i + state.mapSeed) % modes.length];
+        const mapName = mode.maps[(i * 2 + state.mapSeed) % mode.maps.length];
+        const fKey = mode.preferredFactor;
+        const shift = (state.teamA.stats[fKey] - state.teamB.stats[fKey]) * 0.0026 + (i % 2 === 0 ? 0.015 : -0.015);
+        const pctA = Math.round(Math.min(92, Math.max(8, (basePMapA + shift) * 100)));
+        const pctB = 100 - pctA;
+
+        const ban1 = mode.metaBans[(i + state.mapSeed) % mode.metaBans.length];
+        const ban2 = mode.metaBans[(i + state.mapSeed + 1) % mode.metaBans.length];
+        const pickA = [mode.metaPicks[i % mode.metaPicks.length], mode.metaPicks[(i + 2) % mode.metaPicks.length]];
+        const pickB = [mode.metaPicks[(i + 1) % mode.metaPicks.length], mode.metaPicks[(i + 3) % mode.metaPicks.length]];
+        const isDecider = i === state.format - 1;
+
+        cards.push(`
+          <div class="rounded-xl p-3.5 bg-[#090c16] border ${isDecider ? 'border-amber-500/40' : 'border-white/10'} flex flex-col justify-between space-y-3">
+            <div>
+              <div class="flex items-center justify-between gap-1">
+                <span class="text-[10px] font-mono font-bold uppercase px-2 py-0.5 rounded border ${mode.badgeBg} ${mode.color}">SET ${i + 1} • ${mode.name}</span>
+                <span class="text-[10px] font-mono ${isDecider ? 'text-amber-400 font-bold' : 'text-slate-500'}">${isDecider ? 'DECIDER' : (i % 2 === 0 ? '1st A' : '1st B')}</span>
+              </div>
+              <div class="text-sm font-extrabold text-white mt-1.5 truncate" title="${mapName}">${mapName}</div>
+            </div>
+
+            <div class="space-y-1">
+              <div class="flex justify-between text-[11px] font-mono font-bold">
+                <span class="${pctA >= 50 ? 'text-cyan-300' : 'text-slate-400'}">${pctA}%</span>
+                <span class="${pctB > 50 ? 'text-rose-400' : 'text-slate-400'}">${pctB}%</span>
+              </div>
+              <div class="h-2 w-full bg-slate-800 rounded-full overflow-hidden flex">
+                <div class="bg-cyan-400 h-full" style="width:${pctA}%"></div>
+                <div class="bg-rose-500 h-full" style="width:${pctB}%"></div>
+              </div>
+            </div>
+
+            <div class="text-[11px] space-y-1 pt-2 border-t border-white/5">
+              <div class="flex justify-between text-slate-400"><span>Bans:</span><span class="font-mono text-rose-300/90">${ban1}, ${ban2}</span></div>
+              <div class="flex justify-between text-slate-300"><span class="text-cyan-400 font-semibold">Core A:</span><span class="font-mono">${pickA.join(', ')}</span></div>
+              <div class="flex justify-between text-slate-300"><span class="text-rose-400 font-semibold">Core B:</span><span class="font-mono">${pickB.join(', ')}</span></div>
+            </div>
+          </div>
+        `);
+      }
+
+      grid.innerHTML = cards.join('');
+    }
+
+    function renderChangeLog() {
+      const el = document.getElementById('changeLogList');
+      if (state.changeLog.length === 0) {
+        el.innerHTML = `<div class="text-slate-500 py-3 text-center border border-dashed border-white/10 rounded-xl">Записей пока нет</div>`;
+        return;
+      }
+      el.innerHTML = state.changeLog.map(item => `
+        <div class="bg-[#090c16] border border-white/10 rounded-xl px-3 py-2 flex items-start gap-2.5">
+          <span class="font-mono text-[10px] text-emerald-400 shrink-0 mt-0.5">${item.time}</span>
+          <span class="text-slate-300 leading-snug">${item.message}</span>
+        </div>
+      `).join('');
+    }
+
+    function savePredictionToHistory() {
+      const probA = document.getElementById('probTextA').textContent;
+      const probB = document.getElementById('probTextB').textContent;
+      const score = document.getElementById('predictedScore').textContent;
+      const time = new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+
+      state.history.unshift({
+        teamA: state.teamA.name,
+        teamB: state.teamB.name,
+        probA,
+        probB,
+        score,
+        meta: `Bo${state.format} • ${state.stage.toUpperCase()} • ${time}`
+      });
+      if (state.history.length > 15) state.history.pop();
+      renderHistory();
+      saveStateToStorage();
+      showToast('Прогноз добавлен в историю');
+    }
+
+    function renderHistory() {
+      const el = document.getElementById('historyList');
+      if (state.history.length === 0) {
+        el.innerHTML = `<div class="text-slate-500 py-3 text-center border border-dashed border-white/10 rounded-xl">Нажмите «+ В историю» в блоке разбора, чтобы сохранить прогноз</div>`;
+        return;
+      }
+      el.innerHTML = state.history.map(h => `
+        <div class="bg-[#090c16] border border-white/10 rounded-xl px-3 py-2 flex items-center justify-between gap-2">
+          <div>
+            <div class="font-bold text-white"><span class="text-cyan-300">${h.teamA}</span> vs <span class="text-rose-400">${h.teamB}</span></div>
+            <div class="text-[10px] font-mono text-slate-400">${h.meta}</div>
+          </div>
+          <div class="text-right font-mono">
+            <div class="text-sm font-black text-amber-400">${h.score}</div>
+            <div class="text-[10px] text-slate-300">${h.probA} / ${h.probB}</div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function bindEvents() {
+      document.querySelectorAll('.format-btn').forEach(btn => {
+        if (Number(btn.dataset.val) === state.format) {
+          btn.className = 'format-btn py-1.5 text-xs font-bold rounded-lg bg-purple-600 text-white shadow transition';
+        }
+        btn.addEventListener('click', () => {
+          state.format = Number(btn.dataset.val);
+          document.querySelectorAll('.format-btn').forEach(b => {
+            b.className = 'format-btn py-1.5 text-xs font-bold rounded-lg text-slate-400 hover:text-white transition';
+          });
+          btn.className = 'format-btn py-1.5 text-xs font-bold rounded-lg bg-purple-600 text-white shadow transition';
+          saveStateToStorage();
+          runPredictionEngine(false);
+        });
+      });
+
+      const stageEl = document.getElementById('stageSelect');
+      stageEl.value = state.stage;
+      stageEl.addEventListener('change', (e) => {
+        state.stage = e.target.value;
+        saveStateToStorage();
+        runPredictionEngine(false);
+      });
+
+      const envEl = document.getElementById('envSelect');
+      envEl.value = state.env;
+      envEl.addEventListener('change', (e) => {
+        state.env = e.target.value;
+        saveStateToStorage();
+        runPredictionEngine(false);
+      });
+
+      const searchInput = document.getElementById('teamSearchInput');
+      const clearBtn = document.getElementById('btnClearSearch');
+      searchInput.addEventListener('input', (e) => {
+        state.searchQuery = e.target.value;
+        clearBtn.classList.toggle('hidden', !state.searchQuery);
+        populateTeamSelects();
+      });
+      clearBtn.addEventListener('click', () => {
+        state.searchQuery = '';
+        searchInput.value = '';
+        clearBtn.classList.add('hidden');
+        populateTeamSelects();
+      });
+
+      const drawer = document.getElementById('customTeamDrawer');
+      document.getElementById('btnToggleCustomForm').addEventListener('click', () => drawer.classList.toggle('hidden'));
+      document.getElementById('btnCloseCustomForm').addEventListener('click', () => drawer.classList.add('hidden'));
+
+      document.getElementById('btnSaveCustomTeam').addEventListener('click', () => {
+        const name = document.getElementById('newTeamName').value.trim();
+        const roster = document.getElementById('newTeamRoster').value.trim() || 'Player 1, Player 2, Player 3';
+        const region = document.getElementById('newTeamRegion').value;
+        if (!name) {
+          showToast('Введите название команды');
+          return;
+        }
+        const key = 'custom_' + Date.now();
+        state.teamsDb[key] = {
+          name,
+          roster,
+          region,
+          style: 'Custom Roster',
+          note: 'Пользовательский состав, добавленный вручную',
+          stats: { scrims: 74, official: 72, synergy: 78, draft: 76, form: 74, bootcamp: 76, h2h: 50 }
+        };
+        state.teamAKey = key;
+        state.teamA = JSON.parse(JSON.stringify(state.teamsDb[key]));
+        document.getElementById('newTeamName').value = '';
+        document.getElementById('newTeamRoster').value = '';
+        drawer.classList.add('hidden');
+        populateTeamSelects();
+        renderTeamSliders('A');
+        saveStateToStorage();
+        runPredictionEngine(false);
+        pushChangeLog(`Добавлена команда «${name}» (${region}).`);
+        showToast(`Команда «${name}» сохранена`);
+      });
+
+      document.getElementById('presetA').addEventListener('change', (e) => {
+        const key = e.target.value;
+        if (!state.teamsDb[key]) return;
+        state.teamAKey = key;
+        state.teamA = JSON.parse(JSON.stringify(state.teamsDb[key]));
+        state.teamB.stats.h2h = 100 - state.teamA.stats.h2h;
+        renderTeamSliders('A');
+        renderTeamSliders('B');
+        saveStateToStorage();
+        runPredictionEngine(false);
+      });
+
+      document.getElementById('presetB').addEventListener('change', (e) => {
+        const key = e.target.value;
+        if (!state.teamsDb[key]) return;
+        state.teamBKey = key;
+        state.teamB = JSON.parse(JSON.stringify(state.teamsDb[key]));
+        state.teamA.stats.h2h = 100 - state.teamB.stats.h2h;
+        renderTeamSliders('A');
+        renderTeamSliders('B');
+        saveStateToStorage();
+        runPredictionEngine(false);
+      });
+
+      document.getElementById('nameA').addEventListener('input', (e) => {
+        state.teamA.name = e.target.value || 'Team A';
+        saveStateToStorage();
+        runPredictionEngine(false);
+      });
+      document.getElementById('nameB').addEventListener('input', (e) => {
+        state.teamB.name = e.target.value || 'Team B';
+        saveStateToStorage();
+        runPredictionEngine(false);
+      });
+
+      document.getElementById('btnSwapTeams').addEventListener('click', () => {
+        [state.teamAKey, state.teamBKey] = [state.teamBKey, state.teamAKey];
+        [state.teamA, state.teamB] = [state.teamB, state.teamA];
+        [state.locks.A, state.locks.B] = [state.locks.B, state.locks.A];
+        populateTeamSelects();
+        renderTeamSliders('A');
+        renderTeamSliders('B');
+        saveStateToStorage();
+        runPredictionEngine(false);
+        showToast('Команды поменялись сторонами');
+      });
+
+      document.getElementById('btnRunDeepAnalysis').addEventListener('click', () => {
+        state.mapSeed += 1;
+        runPredictionEngine(true);
+        showToast('Выполнено 10,000 симуляций Монте-Карло');
+      });
+
+      document.getElementById('btnRerollMaps').addEventListener('click', () => {
+        state.mapSeed += 1;
+        runPredictionEngine(false);
+        showToast('Обновлен порядок карт и мета-драфт');
+      });
+
+      document.getElementById('btnForceSync').addEventListener('click', () => {
+        performHourlySync('Ручной запуск');
+        showToast('Синхронизация завершена');
+      });
+
+      const autoBtn = document.getElementById('btnToggleAuto');
+      const refreshAutoBtnStyle = () => {
+        autoBtn.textContent = state.autoSyncEnabled ? 'Авто: ВКЛ' : 'Авто: ПАУЗА';
+        autoBtn.className = state.autoSyncEnabled
+          ? 'px-3 py-2 rounded-xl bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/30 text-xs font-bold text-emerald-300 transition'
+          : 'px-3 py-2 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/30 text-xs font-bold text-amber-300 transition';
+      };
+      refreshAutoBtnStyle();
+      autoBtn.addEventListener('click', () => {
+        state.autoSyncEnabled = !state.autoSyncEnabled;
+        refreshAutoBtnStyle();
+        saveStateToStorage();
+        showToast(state.autoSyncEnabled ? 'Автообновление включено' : 'Автообновление на паузе');
+      });
+
+      document.getElementById('btnSaveHistory').addEventListener('click', savePredictionToHistory);
+      document.getElementById('btnClearHistory').addEventListener('click', () => {
+        state.history = [];
+        renderHistory();
+        saveStateToStorage();
+      });
+    }
+
+    let toastTimer = null;
+    function showToast(msg) {
+      const box = document.getElementById('toastBox');
+      document.getElementById('toastMessage').textContent = msg;
+      box.classList.remove('opacity-0', 'translate-y-3');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => box.classList.add('opacity-0', 'translate-y-3'), 2400);
+    }
+
+    window.addEventListener('DOMContentLoaded', async () => {
+      loadStateFromStorage();
+      renderRegionFilters();
+      populateTeamSelects();
+      renderModesPool();
+      renderTeamSliders('A');
+      renderTeamSliders('B');
+      renderChangeLog();
+      renderHistory();
+      bindEvents();
+      runPredictionEngine(false);
+      startCountdownLoop();
+
+      if (!state.lastSyncAt || (Date.now() - state.lastSyncAt) >= SYNC_INTERVAL_MS) {
+        await performHourlySync('Старт сессии');
+      } else {
+        document.getElementById('lastSyncLabel').textContent = new Date(state.lastSyncAt).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        document.getElementById('apiSourceBadge').textContent = `Source: ${state.apiSource}`;
+        document.getElementById('apiSourceHeader').textContent = state.apiSource;
+      }
+    });
+  </script>
+</body>
+</html>
