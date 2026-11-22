@@ -1569,6 +1569,40 @@
         document.getElementById('apiSourceHeader').textContent = state.apiSource;
       }
     });
-  </script>
+    document.addEventListener("DOMContentLoaded", () => {
+    const READONLY_STATS = true;
+    if (!READONLY_STATS) return;
+
+    // Блокируем все ползунки, числовые поля и текстовые поля редактирования
+    document.querySelectorAll("input, select, textarea").forEach((el) => {
+      // Оставляем активными только селекты выбора команд/режимов и поиск, если нужно
+      const isTeamOrModeSelect =
+        el.id?.toLowerCase().includes("team") ||
+        el.id?.toLowerCase().includes("mode") ||
+        el.id?.toLowerCase().includes("format") ||
+        el.id?.toLowerCase().includes("region");
+
+      if (!isTeamOrModeSelect) {
+        el.disabled = true;
+        el.setAttribute("readonly", "true");
+        el.style.pointerEvents = "none";
+        el.style.opacity = "0.75";
+      }
+    });
+
+    // Скрываем кнопки сохранения/редактирования кастомных метрик
+    document.querySelectorAll("button").forEach((btn) => {
+      const text = (btn.textContent || "").toLowerCase();
+      if (
+        text.includes("сохранить") ||
+        text.includes("добавить команду") ||
+        text.includes("сброс") ||
+        text.includes("edit")
+      ) {
+        btn.style.display = "none";
+      }
+    });
+  });
+</script>
 </body>
 </html>
